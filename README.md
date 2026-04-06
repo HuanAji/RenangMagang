@@ -190,59 +190,6 @@ GET      /api/dashboard-stats        - AJAX stats
 GET      /api/dashboard-chart-data   - AJAX chart data
 ```
 
----
-
-## 📲 API Endpoints
-
-### Get Dashboard Stats (AJAX)
-```
-GET /api/dashboard-stats
-Response:
-{
-  "totalPeserta": 15,
-  "totalAthletes": 10,
-  "fastestTime": "00:14.048",
-  "averageTime": "00:18.250",
-  "slowestTime": "00:26.954"
-}
-```
-
-### Get Chart Data
-```
-GET /api/dashboard-chart-data
-Response:
-{
-  "labels": ["Player 2", "Player 8", "Player 3", ...],
-  "data": [14, 6, 18, ...]  // waktu dalam detik
-}
-```
-
-### Get Results Table HTML
-```
-GET /api/results-table
-Response: HTML table rows
-```
-
----
-
-## ⚙️ Configuration
-
-File: `.env`
-```
-APP_NAME=RenangApp
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8000
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=db-renang
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
----
 
 ## 🧪 Testing / Menjalankan Project
 
@@ -253,25 +200,6 @@ php artisan serve
 ```
 Buka browser: http://localhost:8000
 
-### Opsi 2: Menggunakan Laragon
-1. Copy folder `renang-laravel` ke folder websites Laragon
-2. Buka Laragon, klik "Stop All", lalu "Start All"
-3. Di Laragon, right-click pada folder → "Open in Browser"
-
-### Opsi 3: Setup Virtual Host Manual
-```apache
-<VirtualHost *:80>
-    ServerName renang.local
-    DocumentRoot "c:/Users/user/Downloads/renang-laravel/public"
-    
-    <Directory "c:/Users/user/Downloads/renang-laravel/public">
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
----
 
 ## 🔧 Commands Berguna
 
@@ -301,19 +229,6 @@ php artisan tinker
 
 ---
 
-## 📁 Backup Data dari Project Lama
-
-Data dari file PHP lama (`renang-edit1`) dapat diimpor:
-
-```php
-// Import hasil_lomba dari file lama
-$oldData = include 'path/to/old_data.php';
-foreach ($oldData as $item) {
-    HasilLomba::create($item);
-}
-```
-
----
 
 ## 🐛 Troubleshooting
 
@@ -361,10 +276,6 @@ attrib -R storage bootstrap
 - [ ] API Documentation (Swagger)
 - [ ] Unit & Feature Tests
 
----
-
-## 📞 Support
-Untuk pertanyaan atau issue, hubungi pembimbing magang.
 
 ---
 
