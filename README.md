@@ -1,5 +1,5 @@
-# Renang Time Keeper - Laravel 11
-Aplikasi Time Keeper untuk kompetisi renang dengan Laravel 11
+# Renang Dashboard Laravel 
+Web based kompetisi renang 11
 
 ## 📋 Struktur Project Laravel
 
