@@ -9,6 +9,8 @@ class HasilLomba extends Model
     protected $table = 'hasil_lomba';
     protected $fillable = [
         'player',
+        'athlete_id',
+        'athlete_name',
         'waktu_ms',
         'waktu_detik',
         'waktu_menit',
@@ -17,7 +19,7 @@ class HasilLomba extends Model
     ];
     public $timestamps = false;
     protected $attributes = [
-        'waktu_ms' => 0,
+        'waktu_ms'    => 0,
         'waktu_detik' => 0,
         'waktu_menit' => 0,
     ];
@@ -25,4 +27,12 @@ class HasilLomba extends Model
     protected $casts = [
         'timestamp' => 'datetime',
     ];
+
+    /**
+     * Relasi ke tabel athletes berdasarkan athlete_id
+     */
+    public function athlete()
+    {
+        return $this->belongsTo(Athlete::class);
+    }
 }

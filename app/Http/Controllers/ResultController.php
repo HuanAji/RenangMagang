@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HasilLomba;
+use App\Models\Heat;
 use Illuminate\Http\Request;
 
 class ResultController extends Controller
@@ -65,6 +66,101 @@ class ResultController extends Controller
         }
     }
 
+    public function clearAll()
+    {
+        HasilLomba::truncate();
+        return response()->json(['message' => '✅ Semua data hasil lomba berhasil dihapus!']);
+    }
+
+    /**
+     * Cari athlete_id berdasarkan nomor jalur (player) dari heat yang sedang aktif.
+     * IoT mengirim player = nomor jalur (1-8), sistem cocokkan ke lane_assignments.
+     */
+    private function resolveAthleteFromLane(int $laneNumber): array
+    {
+        // Cari heat yang aktif
+        $activeHeat = Heat::with('laneAssignments.athlete')
+            ->where('status', 'active')
+            ->first();
+
+        if (!$activeHeat) {
+            return ['athlete_id' => null, 'athlete_name' => null];
+        }
+
+        // Cari lane assignment yang sesuai dengan nomor jalur
+        $lane = $activeHeat->laneAssignments->firstWhere('lane_number', $laneNumber);
+
+        if (!$lane || !$lane->athlete) {
+            return ['athlete_id' => null, 'athlete_name' => null];
+        }
+
+        return [
+            'athlete_id'   => $lane->athlete->id,
+            'athlete_name' => $lane->athlete->nama,
+        ];
+    }
+
+    public function insertMentah(Request $request)
+    {
+        // === MODE JSON ===
+        if ($request->isJson() || stripos($request->header('Content-Type') ?? '', 'application/json') !== false) {
+            $json = $request->json()->all();
+
+            if (empty($json)) {
+                return response("❌ JSON tidak terbaca.", 200)->header('Content-Type', 'text/plain');
+            }
+
+            foreach ($json as $playerKey => $playerData) {
+                if (isset($playerData['waktu_ms'], $playerData['waktu_detik'], $playerData['waktu_menit'], $playerData['waktu_format'])) {
+                    // Ambil nomor jalur dari key "player1", "player2", atau angka langsung
+                    preg_match('/player(\d+)/', $playerKey, $matches);
+                    $laneNumber = (int)($matches[1] ?? $playerKey);
+
+                    // Auto-mapping: cari atlet berdasarkan jalur di heat aktif
+                    $athleteInfo = $this->resolveAthleteFromLane($laneNumber);
+
+                    HasilLomba::create([
+                        'player'       => $laneNumber,
+                        'athlete_id'   => $athleteInfo['athlete_id'],
+                        'athlete_name' => $athleteInfo['athlete_name'],
+                        'waktu_ms'     => $playerData['waktu_ms'],
+                        'waktu_detik'  => $playerData['waktu_detik'],
+                        'waktu_menit'  => $playerData['waktu_menit'],
+                        'waktu_format' => $playerData['waktu_format'],
+                    ]);
+                }
+            }
+
+            return response("✅ Data JSON berhasil disimpan.", 200)->header('Content-Type', 'text/plain');
+        }
+
+        // === MODE FORM-DATA (per player/jalur) ===
+        $player       = $request->input('player', '');
+        $waktu_format = $request->input('waktu_format', '');
+
+        if ($player === '' || $waktu_format === '') {
+            return response("❌ Data tidak lengkap.", 200)->header('Content-Type', 'text/plain');
+        }
+
+        $laneNumber  = (int)$player;
+        $athleteInfo = $this->resolveAthleteFromLane($laneNumber);
+
+        try {
+            HasilLomba::create([
+                'player'       => $laneNumber,
+                'athlete_id'   => $athleteInfo['athlete_id'],
+                'athlete_name' => $athleteInfo['athlete_name'],
+                'waktu_ms'     => $request->input('waktu_ms', 0),
+                'waktu_detik'  => $request->input('waktu_detik', 0),
+                'waktu_menit'  => $request->input('waktu_menit', 0),
+                'waktu_format' => $waktu_format,
+            ]);
+            return response("✅ Data berhasil disimpan.", 200)->header('Content-Type', 'text/plain');
+        } catch (\Exception $e) {
+            return response("❌ Gagal eksekusi query: " . $e->getMessage(), 200)->header('Content-Type', 'text/plain');
+        }
+    }
+
     public function getTable()
     {
         $results = HasilLomba::orderBy('timestamp', 'desc')->get();
@@ -84,9 +180,13 @@ class ResultController extends Controller
                 }
             }
 
+            // Ambil nama atlet: prioritaskan dari kolom athlete_name (cache), lalu dari relasi
+            $namaAtlet = $result->athlete_name ?? ($result->athlete->nama ?? null);
+            $playerDisplay = 'Jalur ' . $result->player . ($namaAtlet ? ' — ' . $namaAtlet : '');
+
             $html .= '<tr>';
             $html .= '<td>' . ($no + 1) . '</td>';
-            $html .= '<td>' . htmlspecialchars($result->player) . '</td>';
+            $html .= '<td>' . htmlspecialchars($playerDisplay) . '</td>';
             $html .= '<td>' . $menit . '</td>';
             $html .= '<td>' . $detik . '</td>';
             $html .= '<td>' . $ms . '</td>';

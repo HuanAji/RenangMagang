@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-body: #f4f6f9;
@@ -416,9 +417,17 @@
         <div class="iot-table-wrap">
             <div class="iot-table-header">
                 <h5>⏱️ Hasil Waktu IoT (Real-time)</h5>
-                <button class="btn-clear-iot" id="btn-clear-iot" title="Bersihkan layar">
-                    <span class="material-icons">cleaning_services</span> Bersihkan Layar
-                </button>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button class="btn-clear-iot" id="btn-reset-db" title="Hapus semua data dari database">
+                        <span class="material-icons">delete_sweep</span> Reset Semua Waktu
+                    </button>
+                    <button class="btn-clear-iot" id="btn-export-excel" title="Export ke Excel" style="background:var(--accent-green-light); color:var(--accent-green); border-color:rgba(22,163,74,0.2);">
+                        <span class="material-icons">table_view</span> Export Excel
+                    </button>
+                    <button class="btn-clear-iot" id="btn-clear-iot" title="Bersihkan tampilan layar saja">
+                        <span class="material-icons">cleaning_services</span> Bersihkan Layar
+                    </button>
+                </div>
             </div>
             <div class="iot-scroll">
                 <table class="iot-table">
@@ -431,7 +440,6 @@
                             <th style="width:8%;">Detik</th>
                             <th style="width:8%;">MS</th>
                             <th style="width:14%;">Waktu Format</th>
-                            <th style="width:18%;">Waktu Input</th>
                         </tr>
                     </thead>
                     <tbody id="iot-tbody">
@@ -483,27 +491,37 @@
         }
         let html = '';
         heats.forEach(heat => {
+            const totalPeserta = heat.lanes.length;
+            const isFull = totalPeserta >= 8;
             const statusClass = heat.status === 'active' ? 'active-heat' : heat.status === 'completed' ? 'completed-heat' : '';
             const badgeClass = heat.status;
-            const badgeText = heat.status === 'active' ? '🔴 AKTIF' : heat.status === 'completed' ? 'SELESAI' : 'MENUNGGU';
-            const athletes = heat.lanes.map(l => l.athlete_name).join(', ');
+            const badgeText = heat.status === 'active' ? '🔴 AKTIF' : heat.status === 'completed' ? '✅ SELESAI' : '⏳ MENUNGGU';
+
+            // Ringkasan peserta: jumlah + info penuh/tidak
+            const pesertaInfo = isFull
+                ? `<span style="font-weight:600; color:var(--accent-green);">${totalPeserta} peserta</span> <span style="color:var(--text-muted); font-size:0.75rem;">(jalur 1–${totalPeserta})</span>`
+                : `<span style="font-weight:600; color:var(--accent-orange);">${totalPeserta} peserta</span> <span style="color:var(--text-muted); font-size:0.75rem;">(tidak penuh)</span>`;
+
+            // Semua heat bisa dipilih/diaktifkan bebas (tidak harus urutan)
             let actionHtml = '';
-            if (heat.status === 'pending') {
-                actionHtml = `<button class="btn-heat btn-activate" onclick="activateHeat(${heat.id})">
-                    <span class="material-icons">play_arrow</span> Aktifkan
-                </button>`;
-            } else if (heat.status === 'active') {
+            if (heat.status === 'active') {
                 actionHtml = `<button class="btn-heat btn-complete" onclick="completeHeat(${heat.id})">
-                    <span class="material-icons">stop</span> Selesai
+                    <span class="material-icons">stop</span> Tandai Selesai
+                </button>`;
+            } else {
+                // pending ATAU completed — tetap bisa diaktifkan ulang
+                actionHtml = `<button class="btn-heat btn-activate" onclick="activateHeat(${heat.id})">
+                    <span class="material-icons">play_arrow</span> ${heat.status === 'completed' ? 'Aktifkan Ulang' : 'Aktifkan'}
                 </button>`;
             }
+
             html += `
                 <div class="heat-item ${statusClass}">
                     <div class="heat-item-header">
                         <strong>Heat ${heat.heat_number}</strong>
                         <span class="heat-badge ${badgeClass}">${badgeText}</span>
                     </div>
-                    <div class="heat-athletes">${athletes}</div>
+                    <div class="heat-athletes" style="margin-bottom:8px;">${pesertaInfo}</div>
                     <div class="heat-actions">${actionHtml}</div>
                 </div>`;
         });
@@ -636,13 +654,87 @@
         swWrap.classList.remove('sw-running', 'sw-stopped');
     });
 
-    // ===== CLEAR IOT =====
+    // ===== CLEAR IOT (layar saja) =====
     document.getElementById('btn-clear-iot').addEventListener('click', () => {
         iotHidden = true;
         document.getElementById('iot-tbody').innerHTML = `<tr><td colspan="8" class="empty-state" style="padding:30px;">
             <span class="material-icons">timer</span> Layar dibersihkan. Menunggu data baru...
         </td></tr>`;
         setTimeout(() => { iotHidden = false; }, 3000);
+    });
+
+    // ===== RESET SEMUA WAKTU (hapus dari database) =====
+    document.getElementById('btn-reset-db').addEventListener('click', () => {
+        if (!confirm('⚠️ Hapus SEMUA data waktu dari database secara permanen?\n\nTindakan ini tidak bisa dibatalkan!')) return;
+        fetch('/results/clear-all', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(d => {
+            alert(d.message || '✅ Semua data berhasil dihapus!');
+            loadIoTResults();
+        })
+        .catch(() => alert('❌ Gagal menghapus data!'));
+    });
+
+    // ===== EXPORT EXCEL =====
+    document.getElementById('btn-export-excel').addEventListener('click', () => {
+        const rows = document.querySelectorAll('#iot-tbody tr');
+        if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('.empty-state'))) {
+            alert('Tidak ada data untuk di-export!'); return;
+        }
+
+        // Ambil data aktif dari endpoint /results/data
+        fetch('/results/data')
+            .then(r => r.json())
+            .then(data => {
+                if (!data || data.length === 0) { alert('Tidak ada data!'); return; }
+
+                const now = new Date();
+                const tanggal = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+                const activeTitle = document.getElementById('ahb-title').textContent;
+
+                const sheetRows = [
+                    ['Hasil Waktu Lomba Renang - IoT'],
+                    [`Heat Aktif: ${activeTitle}`],
+                    [`Tanggal: ${tanggal}`],
+                    [],
+                    ['No', 'Jalur', 'Nama Atlet', 'Waktu (Menit)', 'Waktu (Detik)', 'Waktu (MS)', 'Waktu Format']
+                ];
+
+                data.forEach((item, idx) => {
+                    const fmt = item.waktu_format || '-';
+                    const parts = fmt.split(':');
+                    let menit = '-', detik = '-', ms = '-';
+                    if (parts.length === 2) {
+                        menit = parts[0];
+                        const sub = parts[1].split('.');
+                        detik = sub[0]; ms = sub[1] || '-';
+                    }
+                    sheetRows.push([
+                        idx + 1,
+                        item.player,
+                        item.athlete_name || '-',
+                        menit, detik, ms, fmt,
+                        item.timestamp
+                    ]);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(sheetRows);
+                ws['!cols'] = [{wch:4},{wch:6},{wch:25},{wch:13},{wch:13},{wch:10},{wch:15},{wch:22}];
+                ws['!merges'] = [
+                    {s:{r:0,c:0},e:{r:0,c:7}},
+                    {s:{r:1,c:0},e:{r:1,c:7}},
+                    {s:{r:2,c:0},e:{r:2,c:7}}
+                ];
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Hasil IoT');
+                const filename = `Hasil_Waktu_IoT_${now.toISOString().slice(0,10)}.xlsx`;
+                XLSX.writeFile(wb, filename);
+            })
+        .catch(() => alert('❌ Gagal mengambil data untuk export!'));
     });
 
     // ===== INIT =====

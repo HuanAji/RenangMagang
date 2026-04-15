@@ -258,6 +258,18 @@
                     <span class="material-icons">download</span> Unduhan
                 </a>
             </li>
+            <!-- Divider -->
+            <li><hr style="margin: 8px 16px; border-color: #e9ecef;"></li>
+            <li>
+                <a href="{{ route('operator.dashboard') }}" class="{{ request()->routeIs('operator.dashboard') ? 'active' : '' }}" style="color: #e65100;">
+                    <span class="material-icons" style="color:#e65100;">settings_remote</span> Operator / Wasit
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('athletes.index') }}" class="{{ request()->routeIs('athletes.index') ? 'active' : '' }}" style="color: #1565c0;">
+                    <span class="material-icons" style="color:#1565c0;">manage_accounts</span> Manajemen Atlet
+                </a>
+            </li>
         </ul>
     </div>
 

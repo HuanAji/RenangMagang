@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Daftar Peserta - Renang</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -48,6 +49,56 @@
 <body>
 
     <div class="container-lg">
+
+        <!-- ====================================================== -->
+        <!-- HASIL WAKTU TIMEKEEPER (dari Arduino/IoT) -->
+        <!-- ====================================================== -->
+        <div class="mb-4">
+            <div class="card">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-bold" style="color: #333;">
+                        <span class="material-icons" style="vertical-align: middle; color: #667eea;">speed</span>
+                        Hasil Waktu Timekeeper
+                    </h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <span id="iot-status-badge" class="badge bg-secondary" style="font-size: 0.78rem;">
+                            <span class="material-icons" style="font-size:0.85rem; vertical-align: middle;">sync</span>
+                            Memuat...
+                        </span>
+                        <button id="btn-clear-results" class="btn btn-sm btn-outline-danger">
+                            <span class="material-icons" style="font-size:0.9rem; vertical-align:middle;">delete_sweep</span> Hapus Semua
+                        </button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover mb-0" id="hasil-iot-table">
+                        <thead style="background: #222; color: white;">
+                            <tr>
+                                <th class="text-center" style="background:#222; color:white; width:5%;">No</th>
+                                <th class="text-center" style="background:#222; color:white; width:10%;">Player</th>
+                                <th class="text-center" style="background:#222; color:white;">Waktu (menit)</th>
+                                <th class="text-center" style="background:#222; color:white;">Waktu (detik)</th>
+                                <th class="text-center" style="background:#222; color:white;">Waktu (ms)</th>
+                                <th class="text-center" style="background:#222; color:white;">Waktu Format</th>
+                                <th class="text-center" style="background:#222; color:white;">Waktu Input</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-hasil-iot">
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <span class="material-icons d-block mb-2" style="font-size: 2rem; color: #ccc;">hourglass_empty</span>
+                                    Menunggu data dari Arduino...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- DAFTAR PESERTA TERDAFTAR -->
+        <!-- ====================================================== -->
         <div class="mb-4">
             <h1 class="text-white mb-2">Daftar Peserta Terdaftar</h1>
             <button id="btn-add-peserta" class="btn btn-success">
@@ -644,6 +695,96 @@
             XLSX.utils.book_append_sheet(wb, ws, 'Hasil Lomba');
             const filename = `Hasil_${currentEventName}_${currentGenderLabel}_Heat${currentHeatNumber}.xlsx`.replace(/\s+/g, '_');
             XLSX.writeFile(wb, filename);
+        });
+        // ===== HASIL WAKTU TIMEKEEPER (IoT / Arduino) =====
+        let lastResultCount = 0;
+
+        function loadHasilIoT() {
+            fetch('/api/results-table')
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('tbody-hasil-iot');
+                    const badge = document.getElementById('iot-status-badge');
+
+                    if (!data.html || data.html.trim() === '') {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">
+                            <span class="material-icons d-block mb-2" style="font-size:2rem;color:#ccc;">hourglass_empty</span>
+                            Belum ada data dari Arduino...
+                        </td></tr>`;
+                        badge.className = 'badge bg-warning text-dark';
+                        badge.innerHTML = '<span class="material-icons" style="font-size:0.85rem;vertical-align:middle;">wifi_off</span> Menunggu Data';
+                        return;
+                    }
+
+                    // Hitung jumlah baris dari server (cek apakah ada data baru)
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = data.html;
+                    const rowCount = tempDiv.querySelectorAll('tr').length;
+
+                    // Parse html, buang baris pertama (koneksi info), format ulang
+                    const rows = Array.from(tempDiv.querySelectorAll('tr'));
+                    let newHtml = '';
+                    let no = 1;
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length < 6) return; // skip info row
+                        const player = cells[1]?.innerText || '-';
+                        const menit = cells[2]?.innerText || '-';
+                        const detik = cells[3]?.innerText || '-';
+                        const ms = cells[4]?.innerText || '-';
+                        const fmt = cells[5]?.innerText || '-';
+                        const waktuInput = cells[6]?.innerText || '-';
+                        newHtml += `<tr>
+                            <td class="text-center">${no++}</td>
+                            <td class="text-center fw-bold">${player}</td>
+                            <td class="text-center">${menit}</td>
+                            <td class="text-center" style="color:#1d4ed8;">${detik}</td>
+                            <td class="text-center">${ms}</td>
+                            <td class="text-center fw-bold" style="color:#1d4ed8;">${fmt}</td>
+                            <td class="text-center" style="color:#1d4ed8;">${waktuInput}</td>
+                        </tr>`;
+                    });
+
+                    if (newHtml === '') {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Belum ada data dari Arduino...</td></tr>`;
+                        badge.className = 'badge bg-secondary';
+                        badge.innerHTML = 'Tidak ada data';
+                        return;
+                    }
+
+                    tbody.innerHTML = newHtml;
+                    badge.className = 'badge bg-success';
+                    badge.innerHTML = `<span class="material-icons" style="font-size:0.85rem;vertical-align:middle;">wifi</span> Terhubung · ${no - 1} data`;
+                    lastResultCount = rowCount;
+                })
+                .catch(() => {
+                    const badge = document.getElementById('iot-status-badge');
+                    badge.className = 'badge bg-danger';
+                    badge.innerHTML = '<span class="material-icons" style="font-size:0.85rem;vertical-align:middle;">error</span> Gagal terhubung';
+                });
+        }
+
+        // Load pertama saat halaman dibuka
+        loadHasilIoT();
+        // Auto-refresh setiap 3 detik
+        setInterval(loadHasilIoT, 3000);
+
+        // Tombol Hapus Semua hasil IoT
+        document.getElementById('btn-clear-results').addEventListener('click', () => {
+            if (!confirm('Hapus semua data hasil waktu dari database?')) return;
+            fetch('/results/clear-all', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(d => {
+                alert(d.message || 'Data berhasil dihapus');
+                loadHasilIoT();
+            })
+            .catch(() => alert('Gagal menghapus data!'));
         });
     </script>
 </body>

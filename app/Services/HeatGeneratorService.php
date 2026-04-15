@@ -77,20 +77,31 @@ class HeatGeneratorService
         // Chunk into heats of 8
         $chunks = array_chunk($sortedAthletes, self::LANES_PER_HEAT);
 
+        // Standar kompetisi renang: heat yang tidak penuh (sisa) ditempatkan di AWAL
+        // sehingga heat 1 = heat dengan peserta sedikit, heat terakhir = heat terkuat/penuh
+        if (count($chunks) > 1) {
+            $lastChunk = end($chunks);
+            // Jika chunk terakhir tidak penuh (< 8), pindahkan ke depan
+            if (count($lastChunk) < self::LANES_PER_HEAT) {
+                array_pop($chunks);         // Hapus dari belakang
+                array_unshift($chunks, $lastChunk); // Taruh di depan
+            }
+        }
+
         DB::transaction(function () use ($chunks, $eventId, $jenisKelamin) {
             foreach ($chunks as $heatIndex => $athleteGroup) {
                 $heat = Heat::create([
-                    'event_id' => $eventId,
-                    'heat_number' => $heatIndex + 1,
+                    'event_id'      => $eventId,
+                    'heat_number'   => $heatIndex + 1,
                     'jenis_kelamin' => $jenisKelamin,
-                    'status' => 'pending',
+                    'status'        => 'pending',
                 ]);
 
                 foreach ($athleteGroup as $laneIndex => $entry) {
                     LaneAssignment::create([
-                        'heat_id' => $heat->id,
-                        'lane_number' => $laneIndex + 1,
-                        'athlete_id' => $entry['athlete']->id,
+                        'heat_id'         => $heat->id,
+                        'lane_number'     => $laneIndex + 1,
+                        'athlete_id'      => $entry['athlete']->id,
                         'registration_id' => $entry['registration']->id,
                     ]);
                 }
