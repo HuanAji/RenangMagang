@@ -21,34 +21,9 @@ class AthleteController extends Controller
         return response()->json($athlete->load('registrations.event'));
     }
 
-    public function documents(Athlete $athlete)
+    public function edit(Athlete $athlete)
     {
-        return view('participant.athletes.documents', compact('athlete'));
-    }
-
-    public function trackRecords(Athlete $athlete)
-    {
-        $athlete->load('trackRecords');
-        $events = Event::all(); // To populate "Nomor Lomba" dropdown if needed
-        return view('participant.athletes.track_records', compact('athlete', 'events'));
-    }
-
-    public function storeTrackRecord(Request $request, Athlete $athlete)
-    {
-        $validated = $request->validate([
-            'nama_kompetisi' => 'required|string',
-            'nomor_lomba' => 'required|string',
-            'durasi_renang' => 'required|string',
-        ]);
-
-        \App\Models\TrackRecord::create([
-            'athlete_id' => $athlete->id,
-            'nama_kompetisi' => $validated['nama_kompetisi'],
-            'nomor_lomba' => $validated['nomor_lomba'],
-            'durasi_renang' => $validated['durasi_renang'],
-        ]);
-
-        return response()->json(['message' => '✅ Track record berhasil ditambahkan!']);
+        return view('participant.athletes.edit', compact('athlete'));
     }
 
     public function store(Request $request)
@@ -96,6 +71,35 @@ class AthleteController extends Controller
         }
     }
 
+    public function destroy(Athlete $athlete)
+    {
+        try {
+            $athlete->registrations()->delete();
+            $athlete->trackRecords()->delete();
+            $athlete->delete();
+            return response()->json(['message' => '✅ Atlet berhasil dihapus!'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => '❌ Gagal menghapus atlet: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function update(Request $request, Athlete $athlete)
+    {
+        $validated = $request->validate([
+            'nama'             => 'required|string',
+            'umur'             => 'nullable|numeric',
+            'jenis_kelamin'    => 'required|in:L,P',
+            'asal_club_sekolah' => 'nullable|string',
+        ]);
+
+        try {
+            $athlete->update($validated);
+            return response()->json(['message' => '✅ Data atlet berhasil diperbarui!'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => '❌ Gagal memperbarui atlet: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function getTable()
     {
         $athletes = Athlete::with('registrations.event')->orderBy('created_at', 'desc')->get();
@@ -118,31 +122,6 @@ class AthleteController extends Controller
         }
 
         return response()->json(['html' => $html]);
-    }
-
-    public function uploadDocument(Request $request, Athlete $athlete)
-    {
-        $request->validate([
-            'surat_keterangan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
-            'akta_kelahiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
-        ]);
-
-        if ($request->hasFile('surat_keterangan')) {
-            $athlete->surat_keterangan_path = $request->file('surat_keterangan')->store('documents', 'public');
-        }
-
-        if ($request->hasFile('akta_kelahiran')) {
-            $athlete->akta_kelahiran_path = $request->file('akta_kelahiran')->store('documents', 'public');
-        }
-
-        // Logic check kelengkapan
-        if (!empty($athlete->surat_keterangan_path) && !empty($athlete->akta_kelahiran_path)) {
-            $athlete->kelengkapan_dokumen = 'Lengkap';
-        }
-
-        $athlete->save();
-
-        return response()->json(['message' => '✅ Dokumen berhasil diunggah!']);
     }
 
     public function getByEvent(Request $request)

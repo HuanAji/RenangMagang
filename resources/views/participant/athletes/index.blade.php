@@ -24,7 +24,7 @@
 
 @section('breadcrumb')
     <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom w-100">
-        <h5 class="fw-bold text-primary mb-0" style="color: #003399 !important;">List Atlet Dari Samator Swimming Club</h5>
+        <h5 class="fw-bold text-primary mb-0" style="color: #003399 !important;">Daftar Atlet Peserta Renang </h5>
         <span class="badge rounded-pill" style="background-color: #003399; font-size: 0.9rem; padding: 0.5rem 1rem;">Total : {{ count($athletes) }} Atlet</span>
     </div>
     <nav aria-label="breadcrumb">
@@ -39,68 +39,64 @@
     <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
         <h5 class="fw-bold text-primary mb-0" style="color: #003399 !important;">Daftar Atlet</h5>
         <div>
-            <button id="btn-add-peserta" class="btn rounded-pill px-4 me-2 d-inline-flex align-items-center text-white" style="background-color: #52c41a; border: none;">
-                <span class="material-icons me-1" style="font-size: 1.1rem;">person_add</span> Tambah
-            </button>
-            <button class="btn rounded-pill px-4 d-inline-flex align-items-center" style="border: 1px solid #52c41a; color: #52c41a; background: white;">
-                <span class="material-icons me-1" style="font-size: 1.1rem;">bolt</span> Tambah Banyak
+            <button id="btn-add-peserta" class="btn btn-success">
+                <span class="material-icons" style="vertical-align: middle; margin-right: 5px;">person_add</span> Tambah Peserta
             </button>
         </div>
     </div>
     <div class="card-body">
-        <div class="d-flex justify-content-between mb-3 mt-3">
+        <form method="GET" action="{{ route('participant.athletes') }}" class="d-flex justify-content-between mb-3 mt-3 w-100">
             <div class="d-flex align-items-center" style="font-size: 0.9rem; color: #666;">
                 Tampilkan 
-                <select class="form-select mx-2 form-select-sm" style="width: auto;">
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
+                <select name="per_page" class="form-select mx-2 form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
                 </select>
                 entri
             </div>
             <div>
-                <label style="font-size: 0.9rem; color: #666;">Cari: <input type="search" class="form-control form-control-sm d-inline-block w-auto ms-1"></label>
+                <label style="font-size: 0.9rem; color: #666;" class="d-flex align-items-center gap-2">Cari: 
+                    <input type="search" name="search" value="{{ request('search') }}" class="form-control form-control-sm d-inline-block w-auto" placeholder="Ketik nama atau klub...">
+                </label>
             </div>
-        </div>
+        </form>
         <div class="table-responsive">
-            <table class="table table-bordered table-striped text-center align-middle">
+            <table class="table table-bordered table-striped align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">#</th>
+                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">No</th>
                         <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Nama</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Umur</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Jenis Kelamin</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Kelengkapan Dokumen</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Track Record</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Aksi</th>
+                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Umur</th>
+                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Jenis Kelamin</th>
+                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Asal Klub/Sekolah</th>
+                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Event</th>
+                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600; width: 110px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-peserta" style="font-size: 0.9rem; color: #444;">
                     @forelse($athletes as $index => $athlete)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td class="text-center">{{ ($athletes->currentPage() - 1) * $athletes->perPage() + $loop->iteration }}</td>
                             <td>{{ $athlete->nama }}</td>
-                            <td>{{ $athlete->umur ?? '-' }}</td>
-                            <td>{{ $athlete->jenis_kelamin === 'L' ? 'Laki-laki' : ($athlete->jenis_kelamin === 'P' ? 'Perempuan' : '-') }}</td>
+                            <td class="text-center">{{ $athlete->umur ? $athlete->umur . ' Tahun' : ($athlete->tanggal_lahir ? \Carbon\Carbon::parse($athlete->tanggal_lahir)->age . ' Tahun' : '-') }}</td>
+                            <td class="text-center">{{ $athlete->jenis_kelamin === 'L' ? 'Laki-laki' : ($athlete->jenis_kelamin === 'P' ? 'Perempuan' : '-') }}</td>
+                            <td>{{ $athlete->asal_club_sekolah ?? '-' }}</td>
                             <td>
-                                @if($athlete->kelengkapan_dokumen === 'Belum Lengkap')
-                                    <span class="badge rounded-pill px-3 py-2" style="background-color: #ff4d4f; font-weight: 500;">Belum Lengkap</span>
-                                @else
-                                    <span class="badge rounded-pill px-3 py-2" style="background-color: #52c41a; font-weight: 500;">Lengkap</span>
-                                @endif
+                                @foreach($athlete->registrations as $reg)
+                                    <span class="badge" style="background-color:#13c2c2;">{{ $reg->event->nama_event }}</span>
+                                @endforeach
                             </td>
-                            <td>
-                                <span class="badge rounded-pill px-3 py-2 text-dark" style="background-color: #ffc107; font-weight: 500;">{{ collect($athlete->trackRecords)->count() }} Kompetisi</span>
-                            </td>
-                            <td>
+                            <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('athletes.documents', $athlete->id) }}" class="btn btn-sm text-white p-1" style="background-color: #003399;" title="Dokumen">
-                                        <span class="material-icons" style="font-size: 1.1rem;">description</span>
+                                    <a href="{{ route('athletes.edit', $athlete->id) }}" class="btn btn-sm text-white p-1" style="background-color: #1890ff;" title="Edit">
+                                        <span class="material-icons" style="font-size: 1.1rem;">edit</span>
                                     </a>
-                                    <a href="{{ route('athletes.track_records', $athlete->id) }}" class="btn btn-sm text-white p-1" style="background-color: #33a5ff;" title="Track Record">
-                                        <span class="material-icons" style="font-size: 1.1rem;">account_tree</span>
-                                    </a>
-                                    <button class="btn btn-sm text-white p-1" style="background-color: #ff4d4f;" title="Hapus">
+                                    <button class="btn btn-sm text-white p-1 btn-delete-athlete" 
+                                        data-id="{{ $athlete->id }}" 
+                                        data-nama="{{ $athlete->nama }}"
+                                        style="background-color: #ff4d4f;" title="Hapus">
                                         <span class="material-icons" style="font-size: 1.1rem;">delete</span>
                                     </button>
                                 </div>
@@ -115,53 +111,81 @@
             </table>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-3">
-            <small class="text-muted">Menampilkan {{ count($athletes) > 0 ? 1 : 0 }} sampai {{ count($athletes) }} dari {{ count($athletes) }} entri</small>
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item border disabled"><a class="page-link border-0 text-muted" href="#">Sebelumnya</a></li>
-                <li class="page-item border active"><a class="page-link border-0 text-white" style="background-color: #003399;" href="#">1</a></li>
-                <li class="page-item border disabled"><a class="page-link border-0 text-muted" href="#">Selanjutnya</a></li>
-            </ul>
+            <small class="text-muted">Menampilkan {{ $athletes->firstItem() ?? 0 }} sampai {{ $athletes->lastItem() ?? 0 }} dari {{ $athletes->total() }} entri</small>
+            <div class="m-0 pagination-sm">
+                {{ $athletes->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Tambah Peserta -->
+<style>
+    .custom-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+    .radio-group-custom .btn-check:checked + .btn {
+        background-color: #003399;
+        color: white;
+        border-color: #003399;
+    }
+    .radio-group-custom .btn {
+        border-color: #e0e6ed;
+        color: #666;
+    }
+    .radio-group-custom .btn:hover { background-color: #f8f9fa; }
+    .radio-group-custom .btn-check:checked + .btn:hover { background-color: #002266; }
+</style>
+
 <div id="modal-peserta" class="custom-modal-overlay">
     <div class="bg-white p-4 rounded shadow" style="width:100%;max-width:550px;max-height:90vh;overflow-y:auto; position: relative;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="fw-bold mb-0 text-secondary">Tambah Atlet</h5>
             <button type="button" class="btn-close" style="font-size: 0.8rem;" aria-label="Close" id="btn-cancel-peserta"></button>
         </div>
-        
+
         <form id="form-peserta" method="POST" action="{{ route('athletes.store') }}">
             @csrf
-            
+
             <div class="mb-3">
                 <label class="form-label" style="font-size: 0.85rem; color: #555;">Nama Atlet</label>
                 <input type="text" name="nama" class="form-control" placeholder="Nama Atlet" required style="border-color: #b3d4ff; font-size: 0.9rem;">
             </div>
-            
+
             <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Umur</label>
-                <input type="number" name="umur" class="form-control" placeholder="Umur" required style="border-color: #e0e6ed; font-size: 0.9rem;">
+                <label class="form-label" style="font-size: 0.85rem; color: #555;">Tanggal Lahir</label>
+                <input type="date" name="tanggal_lahir" class="form-control" required style="border-color: #e0e6ed; font-size: 0.9rem;">
             </div>
-            
+
             <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Asal Instansi Pendidikan</label>
+                <label class="form-label" style="font-size: 0.85rem; color: #555;">Asal Klub / Sekolah</label>
                 <div class="d-flex gap-2">
-                    <select name="asal_club_sekolah" class="form-select text-muted" required style="border-color: #e0e6ed; font-size: 0.9rem;">
-                        <option value="" disabled selected>Pilih Asal Sekolah</option>
+                    <select id="select-asal-klub" name="asal_club_sekolah" class="form-select text-muted" required style="border-color: #e0e6ed; font-size: 0.9rem;">
+                        <option value="" disabled selected>Pilih Asal Sekolah / Klub</option>
                         <option value="Samator Swimming Club">Samator Swimming Club</option>
                         <option value="Universitas Gadjah Mada">Universitas Gadjah Mada</option>
                         <option value="Universitas Negeri Yogyakarta">Universitas Negeri Yogyakarta</option>
-                        <option value="Lainnya">Lainnya...</option>
                     </select>
-                    <button type="button" class="btn text-white px-3" style="background-color: #52c41a;">
-                        <span class="material-icons" style="font-size: 1.1rem; vertical-align: middle;">add</span>
+                    <button type="button" id="btn-tambah-klub" class="btn text-white px-3" style="background-color: #52c41a;" title="Tambah sekolah/klub baru">
+                        <span class="material-icons" id="icon-tambah-klub" style="font-size: 1.1rem; vertical-align: middle;">add</span>
                     </button>
                 </div>
+                <!-- Input tambah klub baru (tersembunyi) -->
+                <div id="wrap-input-klub" class="d-flex gap-2 mt-2" style="display:none !important;">
+                    <input type="text" id="input-klub-baru" class="form-control" placeholder="Ketik nama sekolah / klub baru..." style="font-size: 0.9rem; border-color: #52c41a;">
+                    <button type="button" id="btn-konfirm-klub" class="btn text-white px-3" style="background-color: #003399; white-space: nowrap; font-size: 0.85rem;">
+                        <span class="material-icons" style="font-size: 1rem; vertical-align: middle;">check</span> Tambahkan
+                    </button>
+                </div>
+                <small id="msg-klub" class="text-success" style="font-size:0.8rem; display:none;"></small>
             </div>
-            
+
             <div class="mb-1">
                 <label class="form-label mb-2" style="font-size: 0.85rem; color: #555;">Jenis Kelamin</label>
                 <div class="row g-0 radio-group-custom border rounded overflow-hidden">
@@ -179,31 +203,25 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="mb-4 mt-2">
                 <small class="text-danger" style="font-size: 0.8rem;">*Pastikan ulang semua data yang diinputkan telah benar!</small>
             </div>
-            
+
             <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Provinsi Asal Atlet</label>
-                <select name="provinsi" class="form-select text-muted" required style="border-color: #e0e6ed; font-size: 0.9rem;">
-                    <option value="" disabled selected>Pilih Asal Provinsi</option>
-                    <option value="DIY">DI Yogyakarta</option>
-                    <option value="Jawa Tengah">Jawa Tengah</option>
-                    <option value="Jawa Timur">Jawa Timur</option>
-                </select>
+                <label class="form-label" style="font-size: 0.85rem; color: #555;">Pilih Event</label>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                    @foreach($events as $event)
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="event_id[]" value="{{ $event->id }}" id="event_{{ $event->id }}">
+                        <label class="form-check-label" for="event_{{ $event->id }}">
+                            {{ $event->nama_event }}
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
             </div>
-            
-            <div class="mb-4">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Kabupaten/Kota Asal Atlet</label>
-                <select name="kabupaten_kota" class="form-select text-muted" required style="border-color: #e0e6ed; font-size: 0.9rem; background-color: #f8f9fa;">
-                    <option value="" disabled selected>Pilih provinsi terlebih dahulu</option>
-                    <option value="Yogyakarta">Kota Yogyakarta</option>
-                    <option value="Sleman">Sleman</option>
-                    <option value="Bantul">Bantul</option>
-                </select>
-            </div>
-            
+
             <div class="text-end mt-2">
                 <button type="submit" class="btn px-4" style="background-color: #003399; color: white; font-weight: 500;">Kirim</button>
             </div>
@@ -211,58 +229,216 @@
     </div>
 </div>
 
+
+<!-- ===== TOAST NOTIFIKASI ===== -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    <div id="app-toast" class="toast align-items-center border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2" id="toast-body">
+                <span class="material-icons" id="toast-icon" style="font-size:1.2rem;"></span>
+                <span id="toast-msg"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL KONFIRMASI HAPUS ===== -->
+<div class="modal fade" id="modal-konfirmasi-hapus" tabindex="-1" aria-labelledby="modalHapusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:40px;height:40px;border-radius:50%;background:#fff1f0;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-icons" style="color:#ff4d4f;font-size:1.3rem;">delete_outline</span>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0" id="modalHapusLabel">Konfirmasi Hapus Atlet</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-1" style="font-size:0.95rem;">Anda yakin ingin menghapus atlet:</p>
+                <p class="fw-bold mb-3" id="hapus-nama-atlet" style="color:#003399;"></p>
+                <div class="alert alert-warning py-2 px-3 d-flex align-items-center gap-2" style="font-size:0.82rem;border-radius:8px;">
+                    <span class="material-icons" style="font-size:1rem;">info</span>
+                    Data registrasi &amp; track record atlet ini juga akan ikut terhapus!
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn text-white px-4" id="btn-konfirmasi-hapus" style="background-color:#ff4d4f;">
+                    <span class="material-icons me-1" style="font-size:1rem;vertical-align:middle;">delete</span> Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
-    const btnAdd = document.getElementById('btn-add-peserta');
-    const modal = document.getElementById('modal-peserta');
-    const cancelBtn = document.getElementById('btn-cancel-peserta');
-    const form = document.getElementById('form-peserta');
+    // ===== TOAST HELPER =====
+    function showToast(msg, type = 'success') {
+        const toastEl  = document.getElementById('app-toast');
+        const toastMsg = document.getElementById('toast-msg');
+        const toastIcon = document.getElementById('toast-icon');
 
-    btnAdd.addEventListener('click', () => {
-        modal.style.display = 'flex';
+        // Warna & ikon
+        toastEl.className = 'toast align-items-center border-0 shadow text-white';
+        if (type === 'success') {
+            toastEl.classList.add('bg-success');
+            toastIcon.textContent = 'check_circle';
+        } else if (type === 'error') {
+            toastEl.classList.add('bg-danger');
+            toastIcon.textContent = 'error';
+        } else {
+            toastEl.classList.add('bg-warning', 'text-dark');
+            toastIcon.textContent = 'warning';
+        }
+
+        toastMsg.textContent = msg;
+        const bsToast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 });
+        bsToast.show();
+    }
+
+    // ===== MODAL TAMBAH PESERTA =====
+    const btnAdd    = document.getElementById('btn-add-peserta');
+    const modal     = document.getElementById('modal-peserta');
+    const cancelBtn = document.getElementById('btn-cancel-peserta');
+    const form      = document.getElementById('form-peserta');
+
+    btnAdd.addEventListener('click', () => { modal.style.display = 'flex'; });
+    cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; form.reset(); resetTambahKlub(); });
+    modal.addEventListener('click', (e) => { if (e.target === modal) { modal.style.display = 'none'; form.reset(); resetTambahKlub(); } });
+
+    // ===== TOMBOL TAMBAH KLUB =====
+    const btnTambahKlub = document.getElementById('btn-tambah-klub');
+    const wrapInputKlub = document.getElementById('wrap-input-klub');
+    const inputKlubBaru = document.getElementById('input-klub-baru');
+    const btnKonfirmKlub = document.getElementById('btn-konfirm-klub');
+    const selectKlub = document.getElementById('select-asal-klub');
+    const iconTambah = document.getElementById('icon-tambah-klub');
+    const msgKlub = document.getElementById('msg-klub');
+    let klubPanelOpen = false;
+
+    function resetTambahKlub() {
+        wrapInputKlub.style.setProperty('display', 'none', 'important');
+        iconTambah.textContent = 'add';
+        btnTambahKlub.style.backgroundColor = '#52c41a';
+        klubPanelOpen = false;
+        inputKlubBaru.value = '';
+        msgKlub.style.display = 'none';
+        selectKlub.disabled = false;
+    }
+
+    btnTambahKlub.addEventListener('click', () => {
+        klubPanelOpen = !klubPanelOpen;
+        if (klubPanelOpen) {
+            wrapInputKlub.style.setProperty('display', 'flex', 'important');
+            inputKlubBaru.focus();
+            iconTambah.textContent = 'close';
+            btnTambahKlub.style.backgroundColor = '#ff4d4f';
+            selectKlub.disabled = true;
+        } else {
+            resetTambahKlub();
+        }
     });
 
-    cancelBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-        form.reset();
+    btnKonfirmKlub.addEventListener('click', () => {
+        const val = inputKlubBaru.value.trim();
+        if (!val) { alert('Isi nama klub/sekolah!'); return; }
+        const ex = Array.from(selectKlub.options).find(o => o.value.toLowerCase() === val.toLowerCase());
+        if (!ex) {
+            const opt = new Option(val, val);
+            selectKlub.add(opt);
+        }
+        selectKlub.value = val;
+        
+        msgKlub.textContent = 'Klub baru ditambahkan ke daftar!';
+        msgKlub.style.display = 'block';
+        wrapInputKlub.style.setProperty('display', 'none', 'important');
+        iconTambah.textContent = 'add';
+        btnTambahKlub.style.backgroundColor = '#52c41a';
+        klubPanelOpen = false;
+        inputKlubBaru.value = '';
+        selectKlub.disabled = false;
+        setTimeout(() => msgKlub.style.display = 'none', 3000);
     });
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-
         const formData = new FormData(form);
-        
+
         fetch('{{ route("athletes.store") }}', {
             method: 'POST',
             body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(r => r.json().then(data => ({ status: r.status, data })))
+        .then(({ status, data }) => {
+            if (status === 200 && data.message) {
+                modal.style.display = 'none';
+                form.reset();
+                showToast(data.message, 'success');
+                setTimeout(() => location.reload(), 1200);
+            } else if (data.error) {
+                showToast(data.error, 'error');
+            } else if (data.errors) {
+                const first = Object.values(data.errors)[0][0];
+                showToast('Validasi: ' + first, 'error');
+            } else {
+                showToast('Gagal menyimpan peserta', 'error');
+            }
+        })
+        .catch(err => showToast('Error: ' + err.message, 'error'));
+    });
+
+    // ===== DELETE ATLET =====
+    let deleteTargetId   = null;
+    let deleteTargetRow  = null;
+
+    // Klik tombol hapus → tampilkan modal konfirmasi Bootstrap
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-delete-athlete');
+        if (!btn) return;
+
+        deleteTargetId  = btn.dataset.id;
+        deleteTargetRow = btn.closest('tr');
+
+        document.getElementById('hapus-nama-atlet').textContent = btn.dataset.nama;
+        const bsModal = new bootstrap.Modal(document.getElementById('modal-konfirmasi-hapus'));
+        bsModal.show();
+    });
+
+    // Klik tombol "Hapus" di dalam modal konfirmasi
+    document.getElementById('btn-konfirmasi-hapus').addEventListener('click', function() {
+        if (!deleteTargetId) return;
+
+        // Tutup modal konfirmasi
+        bootstrap.Modal.getInstance(document.getElementById('modal-konfirmasi-hapus')).hide();
+
+        fetch(`/athletes/${deleteTargetId}`, {
+            method: 'DELETE',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'Accept': 'application/json'
             }
         })
-        .then(r => r.json().then(data => ({status: r.status, data})))
-        .then(({status, data}) => {
-            if (status === 200 && data.message) {
-                alert('✅ ' + data.message);
-                modal.style.display = 'none';
-                form.reset();
-                setTimeout(() => location.reload(), 500);
-            } else if (data.error) {
-                alert('❌ Error: ' + data.error);
-            } else if (data.errors) {
-                let errorMsg = '❌ Validasi error:\n';
-                for (let field in data.errors) {
-                    errorMsg += '- ' + field + ': ' + data.errors[field][0] + '\n';
-                }
-                alert(errorMsg);
+        .then(r => r.json())
+        .then(data => {
+            if (data.message) {
+                showToast(data.message, 'success');
+                // Reload halaman setelah toast muncul sebentar
+                setTimeout(() => location.reload(), 1200);
             } else {
-                alert('❌ Error: Gagal menyimpan peserta');
+                showToast(data.error || 'Gagal menghapus atlet', 'error');
             }
+            deleteTargetId  = null;
+            deleteTargetRow = null;
         })
-        .catch(err => {
-            alert('❌ Error: ' + err.message);
-        });
+        .catch(err => showToast('Error: ' + err.message, 'error'));
     });
 </script>
 @endpush
 @endsection
+
+

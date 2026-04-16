@@ -117,7 +117,7 @@
                             <th class="text-center">Jenis Kelamin</th>
                             <th>Asal Klub/Sekolah</th>
                             <th>Event</th>
-                            <th>Terdaftar</th>
+                            <th class="text-center" style="width:110px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-peserta">
@@ -133,7 +133,25 @@
                                     <span class="badge bg-info">{{ $reg->event->nama_event }}</span>
                                 @endforeach
                             </td>
-                            <td>{{ $athlete->created_at->format('d-m-Y H:i:s') }}</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button class="btn btn-sm text-white p-1 btn-edit-athlete"
+                                        data-id="{{ $athlete->id }}"
+                                        data-nama="{{ $athlete->nama }}"
+                                        data-umur="{{ $athlete->umur }}"
+                                        data-jenis_kelamin="{{ $athlete->jenis_kelamin }}"
+                                        data-asal="{{ $athlete->asal_club_sekolah }}"
+                                        style="background-color:#1890ff;" title="Edit">
+                                        <span class="material-icons" style="font-size:1.05rem;">edit</span>
+                                    </button>
+                                    <button class="btn btn-sm text-white p-1 btn-delete-athlete"
+                                        data-id="{{ $athlete->id }}"
+                                        data-nama="{{ $athlete->nama }}"
+                                        style="background-color:#ff4d4f;" title="Hapus">
+                                        <span class="material-icons" style="font-size:1.05rem;">delete</span>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         @empty
                         <tr>
@@ -142,6 +160,87 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST NOTIFIKASI ===== -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1100;">
+        <div id="app-toast" class="toast align-items-center border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <span class="material-icons" id="toast-icon" style="font-size:1.2rem;"></span>
+                    <span id="toast-msg"></span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL EDIT ATLET ===== -->
+    <div class="modal fade" id="modal-edit-atlet" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0">
+                    <h6 class="modal-title fw-bold">✏️ Edit Data Atlet</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-atlet-id">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.85rem;">Nama Atlet</label>
+                        <input type="text" id="edit-nama" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.85rem;">Umur</label>
+                        <input type="number" id="edit-umur" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.85rem;">Jenis Kelamin</label>
+                        <select id="edit-jenis_kelamin" class="form-select">
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:0.85rem;">Asal Klub/Sekolah</label>
+                        <input type="text" id="edit-asal" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn text-white px-4" id="btn-simpan-edit" style="background-color:#1890ff;">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL KONFIRMASI HAPUS ===== -->
+    <div class="modal fade" id="modal-hapus-atlet" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:38px;height:38px;border-radius:50%;background:#fff1f0;display:flex;align-items:center;justify-content:center;">
+                            <span class="material-icons" style="color:#ff4d4f;font-size:1.2rem;">delete_outline</span>
+                        </div>
+                        <h6 class="modal-title fw-bold mb-0">Konfirmasi Hapus Atlet</h6>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:0.93rem;">Yakin hapus atlet: <strong id="hapus-nama-atlet" style="color:#003399;"></strong>?</p>
+                    <div class="alert alert-warning py-2 px-3 d-flex align-items-center gap-2 mb-0" style="font-size:0.82rem;">
+                        <span class="material-icons" style="font-size:1rem;">info</span>
+                        Registrasi &amp; track record juga akan ikut terhapus!
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn text-white px-4" id="btn-konfirmasi-hapus" style="background-color:#ff4d4f;">
+                        <span class="material-icons me-1" style="font-size:1rem;vertical-align:middle;">delete</span>Hapus
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -780,11 +879,93 @@
                 }
             })
             .then(r => r.json())
-            .then(d => {
-                alert(d.message || 'Data berhasil dihapus');
-                loadHasilIoT();
+            .then(d => { showToast(d.message || 'Data berhasil dihapus', 'success'); loadHasilIoT(); })
+            .catch(() => showToast('Gagal menghapus data!', 'error'));
+        });
+
+        // ===== TOAST HELPER =====
+        function showToast(msg, type = 'success') {
+            const toastEl   = document.getElementById('app-toast');
+            const toastMsg  = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+            toastEl.className = 'toast align-items-center border-0 shadow text-white';
+            if (type === 'success') { toastEl.classList.add('bg-success'); toastIcon.textContent = 'check_circle'; }
+            else if (type === 'error') { toastEl.classList.add('bg-danger'); toastIcon.textContent = 'error'; }
+            else { toastEl.classList.add('bg-warning', 'text-dark'); toastIcon.textContent = 'warning'; }
+            toastMsg.textContent = msg;
+            bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3500 }).show();
+        }
+
+        const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        // ===== EDIT ATLET =====
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-edit-athlete');
+            if (!btn) return;
+            document.getElementById('edit-atlet-id').value       = btn.dataset.id;
+            document.getElementById('edit-nama').value           = btn.dataset.nama;
+            document.getElementById('edit-umur').value           = btn.dataset.umur;
+            document.getElementById('edit-jenis_kelamin').value  = btn.dataset.jenis_kelamin;
+            document.getElementById('edit-asal').value           = btn.dataset.asal;
+            new bootstrap.Modal(document.getElementById('modal-edit-atlet')).show();
+        });
+
+        document.getElementById('btn-simpan-edit').addEventListener('click', function() {
+            const id   = document.getElementById('edit-atlet-id').value;
+            const body = new FormData();
+            body.append('nama',              document.getElementById('edit-nama').value);
+            body.append('umur',              document.getElementById('edit-umur').value);
+            body.append('jenis_kelamin',     document.getElementById('edit-jenis_kelamin').value);
+            body.append('asal_club_sekolah', document.getElementById('edit-asal').value);
+            body.append('_method', 'PUT');
+
+            fetch(`/athletes/${id}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                body: body
             })
-            .catch(() => alert('Gagal menghapus data!'));
+            .then(r => r.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('modal-edit-atlet')).hide();
+                if (data.message) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showToast(data.error || 'Gagal memperbarui atlet', 'error');
+                }
+            })
+            .catch(err => showToast('Error: ' + err.message, 'error'));
+        });
+
+        // ===== DELETE ATLET =====
+        let deleteTargetId = null;
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-delete-athlete');
+            if (!btn) return;
+            deleteTargetId = btn.dataset.id;
+            document.getElementById('hapus-nama-atlet').textContent = btn.dataset.nama;
+            new bootstrap.Modal(document.getElementById('modal-hapus-atlet')).show();
+        });
+
+        document.getElementById('btn-konfirmasi-hapus').addEventListener('click', function() {
+            if (!deleteTargetId) return;
+            bootstrap.Modal.getInstance(document.getElementById('modal-hapus-atlet')).hide();
+            fetch(`/athletes/${deleteTargetId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.message) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showToast(data.error || 'Gagal menghapus atlet', 'error');
+                }
+                deleteTargetId = null;
+            })
+            .catch(err => showToast('Error: ' + err.message, 'error'));
         });
     </script>
 </body>

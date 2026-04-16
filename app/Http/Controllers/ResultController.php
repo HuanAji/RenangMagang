@@ -103,12 +103,18 @@ class ResultController extends Controller
     public function insertMentah(Request $request)
     {
         // === MODE JSON ===
+        $json = [];
         if ($request->isJson() || stripos($request->header('Content-Type') ?? '', 'application/json') !== false) {
             $json = $request->json()->all();
-
-            if (empty($json)) {
-                return response("❌ JSON tidak terbaca.", 200)->header('Content-Type', 'text/plain');
+        } else {
+            // Coba parsing mentah (berguna jika di postman lupa setting header application/json)
+            $decoded = json_decode($request->getContent(), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $json = $decoded;
             }
+        }
+
+        if (!empty($json)) {
 
             foreach ($json as $playerKey => $playerData) {
                 if (isset($playerData['waktu_ms'], $playerData['waktu_detik'], $playerData['waktu_menit'], $playerData['waktu_format'])) {

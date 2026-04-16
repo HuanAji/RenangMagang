@@ -14,12 +14,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::get('/athletes', [AthleteController::class, 'index'])->name('athletes.index');
 Route::post('/athletes', [AthleteController::class, 'store'])->name('athletes.store');
 Route::get('/athletes/{athlete}', [AthleteController::class, 'show'])->name('athletes.show');
-Route::get('/athletes/{athlete}/documents', [AthleteController::class, 'documents'])->name('athletes.documents');
-Route::post('/athletes/{athlete}/upload-document', [AthleteController::class, 'uploadDocument'])->name('athletes.upload_document');
-Route::get('/athletes/{athlete}/track-records', [AthleteController::class, 'trackRecords'])->name('athletes.track_records');
-Route::post('/athletes/{athlete}/track-records', [AthleteController::class, 'storeTrackRecord'])->name('athletes.store_track_record');
+Route::put('/athletes/{athlete}', [AthleteController::class, 'update'])->name('athletes.update');
+Route::delete('/athletes/{athlete}', [AthleteController::class, 'destroy'])->name('athletes.destroy');
+Route::get('/athletes/{athlete}/edit', [AthleteController::class, 'edit'])->name('athletes.edit');
 
 // Registrations
+
 Route::get('/registrations', [RegistrationController::class, 'index'])->name('registrations.index');
 Route::post('/registrations', [RegistrationController::class, 'store'])->name('registrations.store');
 
@@ -68,9 +68,18 @@ Route::prefix('participant')->name('participant.')->group(function () {
         ));
     })->name('dashboard');
     
-    Route::get('/athletes', function () {
-        $athletes = \App\Models\Athlete::with('registrations.event')->orderBy('created_at', 'desc')->get();
+    Route::get('/athletes', function (\Illuminate\Http\Request $request) {
+        $query = \App\Models\Athlete::with('registrations.event')->orderBy('created_at', 'desc');
+        
+        if ($search = $request->get('search')) {
+            $query->where('nama', 'LIKE', '%' . $search . '%')
+                  ->orWhere('asal_club_sekolah', 'LIKE', '%' . $search . '%');
+        }
+        
+        $perPage = $request->get('per_page', 10);
+        $athletes = $query->paginate($perPage)->withQueryString();
         $events = \App\Models\Event::all();
+        
         return view('participant.athletes.index', compact('athletes', 'events'));
     })->name('athletes');
     

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SwimPool - @yield('title')</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -230,32 +231,12 @@
             </li>
             <li>
                 <a href="{{ route('participant.athletes') }}" class="{{ request()->routeIs('participant.athletes') ? 'active' : '' }}">
-                    <span class="material-icons">groups</span> Atlet Saya
+                    <span class="material-icons">groups</span> Daftar Atlet
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <span class="material-icons">group_add</span> Tim Saya
-                </a>
-            </li>
-            <li>
-                <a href="#" class="menu-collapse-toggle">
-                    <span class="material-icons">emoji_events</span> Kompetisi <span class="material-icons ms-auto" style="font-size: 1.1rem; width: auto; margin-right: 0;">keyboard_arrow_down</span>
-                </a>
-                <ul class="sidebar-submenu {{ request()->routeIs('participant.competitions.*') ? 'show' : '' }}">
-                    <li><a href="{{ route('participant.competitions.explore') }}" class="{{ request()->routeIs('participant.competitions.explore') ? 'active' : '' }}">Eksplor</a></li>
-                    <li><a href="{{ route('participant.competitions.diikuti') }}" class="{{ request()->routeIs('participant.competitions.diikuti') ? 'active' : '' }}">Diikuti</a></li>
-                    <li><a href="{{ route('participant.competitions.heats') }}" class="{{ request()->routeIs('participant.competitions.heats') ? 'active' : '' }}">Heat & Jalur</a></li>
-                </ul>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="material-icons">payments</span> Pembayaran
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <span class="material-icons">download</span> Unduhan
+                <a href="{{ route('participant.competitions.heats') }}" class="{{ request()->routeIs('participant.competitions.heats') ? 'active' : '' }}">
+                    <span class="material-icons">emoji_events</span> Heat &amp; Jalur
                 </a>
             </li>
             <!-- Divider -->
@@ -272,6 +253,7 @@
             </li>
         </ul>
     </div>
+
 
     <!-- Main Content -->
     <div class="main-content">
@@ -313,14 +295,6 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Simple sidebar collapse logic
-        document.querySelector('.menu-collapse-toggle').addEventListener('click', function(e) {
-            e.preventDefault();
-            const submenu = this.nextElementSibling;
-            submenu.classList.toggle('show');
-        });
-    </script>
     @stack('scripts')
 </body>
 </html>
