@@ -28,6 +28,7 @@ Route::get('/results', [ResultController::class, 'index'])->name('results.index'
 Route::get('/results/data', [ResultController::class, 'getData'])->name('results.data');
 Route::post('/results', [ResultController::class, 'store'])->name('results.store');
 Route::post('/results/clear-all', [ResultController::class, 'clearAll'])->name('results.clear_all');
+Route::post('/results/clear-last-session', [ResultController::class, 'clearLastSession'])->name('results.clear_last_session');
 Route::any('/insert.php', [ResultController::class, 'insertMentah'])->name('insert.php');
 
 // Heats

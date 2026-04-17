@@ -234,13 +234,15 @@
                     <span class="material-icons">groups</span> Daftar Atlet
                 </a>
             </li>
+            
+            <!-- Divider -->
+            <li><hr style="margin: 8px 16px; border-color: #e9ecef;"></li>
             <li>
-                <a href="{{ route('participant.competitions.heats') }}" class="{{ request()->routeIs('participant.competitions.heats') ? 'active' : '' }}">
+                <a href="{{ route('participant.competitions.heats') }}" class="{{ request()->routeIs('participant.competitions.heats') ? 'active' : '' }}" style="color: #e65100;">
                     <span class="material-icons">emoji_events</span> Heat &amp; Jalur
                 </a>
             </li>
-            <!-- Divider -->
-            <li><hr style="margin: 8px 16px; border-color: #e9ecef;"></li>
+
             <li>
                 <a href="{{ route('operator.dashboard') }}" class="{{ request()->routeIs('operator.dashboard') ? 'active' : '' }}" style="color: #e65100;">
                     <span class="material-icons" style="color:#e65100;">settings_remote</span> Operator / Wasit

@@ -68,8 +68,32 @@ class ResultController extends Controller
 
     public function clearAll()
     {
-        HasilLomba::truncate();
+        // Gunakan delete() alih-alih truncate() untuk menghindari masalah tablespace pada InnoDB Windows
+        HasilLomba::query()->delete();
         return response()->json(['message' => '✅ Semua data hasil lomba berhasil dihapus!']);
+    }
+
+    /**
+     * Hapus N data terakhir yang di-insert, di mana N = jumlah peserta di heat aktif.
+     * Jika tidak ada heat aktif, default ke 8.
+     * Berguna saat tanding ulang karena ada kecurangan, tanpa menghapus data heat sebelumnya.
+     */
+    public function clearLastSession()
+    {
+        // Hitung jumlah peserta dari heat yang sedang aktif
+        $activeHeat = Heat::where('status', 'active')->withCount('laneAssignments')->first();
+        $n = $activeHeat ? max(1, $activeHeat->lane_assignments_count) : 8;
+
+        // Ambil ID dari N data terakhir
+        $ids = HasilLomba::orderBy('id', 'desc')->limit($n)->pluck('id');
+
+        if ($ids->isEmpty()) {
+            return response()->json(['message' => 'Tidak ada data untuk dihapus.']);
+        }
+
+        $count = HasilLomba::whereIn('id', $ids)->delete();
+
+        return response()->json(['message' => "✅ {$count} data terakhir (sesuai {$n} peserta aktif) berhasil dihapus! Data heat sebelumnya tetap aman."]);
     }
 
     /**

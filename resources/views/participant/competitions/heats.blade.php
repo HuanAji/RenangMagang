@@ -448,6 +448,65 @@
     </div>
 </div>
 
+<!-- ===== MODAL KONFIRMASI RESET SESI ===== -->
+<div class="modal fade" id="modal-reset-sesi" tabindex="-1" aria-labelledby="modalResetSesiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:40px;height:40px;border-radius:50%;background:#fff1f0;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-icons" style="color:#dc2626;font-size:1.3rem;">restart_alt</span>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0" id="modalResetSesiLabel">Reset Waktu Sesi Terakhir</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-2" style="font-size:0.95rem;">Hapus data waktu dari <strong>batch/heat terakhir</strong> saja?</p>
+                <div class="alert alert-warning py-2 px-3 d-flex gap-2 m-0" style="font-size:0.82rem;border-radius:8px;">
+                    <span class="material-icons" style="font-size:1.2rem;flex-shrink:0;">info</span>
+                    <div>Data heat-heat <strong>sebelumnya tetap aman</strong>. Gunakan fitur ini jika ada tanding ulang akibat kecurangan atau gagal start.</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn text-white px-4" id="btn-konfirmasi-reset-sesi" style="background-color:#dc2626;">
+                    <span class="material-icons me-1" style="font-size:1rem;vertical-align:middle;">delete_sweep</span> Reset Sesi Ini
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL KONFIRMASI EXPORT EXCEL ===== -->
+<div class="modal fade" id="modal-export-excel" tabindex="-1" aria-labelledby="modalExportExcelLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:40px;height:40px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-icons" style="color:#16a34a;font-size:1.3rem;">table_view</span>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0" id="modalExportExcelLabel">Konfirmasi Export Excel</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2" style="font-size:0.95rem;">Anda akan mendownload hasil waktu renang yang ditarik dari alat IoT.</p>
+                <div class="p-3 mb-1" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+                    <div style="font-size:0.8rem; color:#64748b; margin-bottom:4px;">Heat yang akan diexport:</div>
+                    <div id="export-modal-filename" style="font-weight:600; color:#0f172a; word-break:break-word;">(Memuat data...)</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn text-white px-4" id="btn-konfirmasi-export" style="background-color:#16a34a;">
+                    <span class="material-icons me-1" style="font-size:1rem;vertical-align:middle;">download</span> Download Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- ===== TOAST NOTIFIKASI ===== -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
     <div id="app-toast" class="toast align-items-center border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
@@ -729,46 +788,85 @@
         setTimeout(() => { iotHidden = false; }, 3000);
     });
 
-    // ===== RESET SEMUA WAKTU (hapus dari database) =====
+    // ===== RESET SESI TERAKHIR (hanya hapus data batch/heat terakhir) =====
     document.getElementById('btn-reset-db').addEventListener('click', () => {
-        if (!confirm('⚠️ Hapus SEMUA data waktu dari database secara permanen?\n\nTindakan ini tidak bisa dibatalkan!')) return;
-        fetch('/results/clear-all', {
+        const bsModal = new bootstrap.Modal(document.getElementById('modal-reset-sesi'));
+        bsModal.show();
+    });
+
+    document.getElementById('btn-konfirmasi-reset-sesi').addEventListener('click', () => {
+        bootstrap.Modal.getInstance(document.getElementById('modal-reset-sesi'))?.hide();
+
+        fetch('/results/clear-last-session', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
         })
         .then(r => r.json())
         .then(d => {
-            alert(d.message || '✅ Semua data berhasil dihapus!');
+            showToast(d.message || '✅ Data sesi terakhir berhasil dihapus!', 'success');
             loadIoTResults();
         })
-        .catch(() => alert('❌ Gagal menghapus data!'));
+        .catch(() => showToast('❌ Gagal menghapus data!', 'error'));
     });
 
     // ===== EXPORT EXCEL =====
     document.getElementById('btn-export-excel').addEventListener('click', () => {
         const rows = document.querySelectorAll('#iot-tbody tr');
         if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('.empty-state'))) {
-            alert('Tidak ada data untuk di-export!'); return;
+            showToast('Tidak ada data untuk di-export!', 'warning'); return;
         }
 
+        // Tampilkan dulu teks di modal apa yang akan terdownload
+        const activeTitle  = document.getElementById('ahb-title').textContent.trim();
+        const genderSelect = document.getElementById('select-gender');
+        const genderText   = genderSelect ? (genderSelect.value === 'L' ? 'Putra' : genderSelect.value === 'P' ? 'Putri' : 'Semua') : 'Semua';
+        const eventSelect  = document.getElementById('select-event');
+        const eventText    = eventSelect ? (eventSelect.options[eventSelect.selectedIndex]?.text || 'Event') : 'Event';
+        const eventClean   = eventText.replace(/^\d+\s*[\-—]\s*/, '').trim();
+        const heatMatch    = activeTitle.match(/Heat\s*(\d+)/i);
+        const heatLabel    = heatMatch ? `Heat ${heatMatch[1]}` : (activeTitle || 'Heat');
+        
+        const fileTitle = activeTitle && activeTitle !== 'Belum ada Heat aktif' ? activeTitle : `${eventClean} — ${genderText} — ${heatLabel}`;
+        
+        document.getElementById('export-modal-filename').textContent = fileTitle;
+        
+        const exportModal = new bootstrap.Modal(document.getElementById('modal-export-excel'));
+        exportModal.show();
+    });
+
+    // Proses download setelah konfirmasi
+    document.getElementById('btn-konfirmasi-export').addEventListener('click', () => {
+        bootstrap.Modal.getInstance(document.getElementById('modal-export-excel'))?.hide();
+        
         fetch('/results/data')
             .then(r => r.json())
             .then(data => {
-                if (!data || data.length === 0) { alert('Tidak ada data!'); return; }
+                if (!data || data.length === 0) { showToast('Tidak ada data yang tersedia!', 'warning'); return; }
 
-                const now = new Date();
+                const activeTitle  = document.getElementById('ahb-title').textContent.trim();
+                const genderSelect = document.getElementById('select-gender');
+                const genderText   = genderSelect ? (genderSelect.value === 'L' ? 'Putra' : genderSelect.value === 'P' ? 'Putri' : 'Semua') : 'Semua';
+                const eventSelect  = document.getElementById('select-event');
+                const eventText    = eventSelect ? (eventSelect.options[eventSelect.selectedIndex]?.text || 'Event') : 'Event';
+                const eventClean   = eventText.replace(/^\d+\s*[\-—]\s*/, '').trim();
+                const heatMatch    = activeTitle.match(/Heat\s*(\d+)/i);
+                const heatLabel    = heatMatch ? `Heat ${heatMatch[1]}` : (activeTitle || 'Heat');
+                
+                const fileTitle = activeTitle && activeTitle !== 'Belum ada Heat aktif' ? activeTitle : `${eventClean} — ${genderText} — ${heatLabel}`;
+
+                const sortedData   = [...data].sort((a, b) => (a.waktu_ms || 0) - (b.waktu_ms || 0));
+                const now     = new Date();
                 const tanggal = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-                const activeTitle = document.getElementById('ahb-title').textContent;
 
                 const sheetRows = [
-                    ['Hasil Waktu Lomba Renang - IoT'],
-                    [`Heat Aktif: ${activeTitle}`],
+                    [`Hasil Waktu Lomba Renang — ${fileTitle}`],
+                    [`${heatLabel}`],
                     [`Tanggal: ${tanggal}`],
                     [],
-                    ['No', 'Jalur', 'Nama Atlet', 'Waktu (Menit)', 'Waktu (Detik)', 'Waktu (MS)', 'Waktu Format']
+                    ['Rank', 'No. Jalur', 'Nama Atlet', 'Waktu (Menit)', 'Waktu (Detik)', 'Waktu (MS)', 'Waktu Format']
                 ];
 
-                data.forEach((item, idx) => {
+                sortedData.forEach((item, idx) => {
                     const fmt = item.waktu_format || '-';
                     const parts = fmt.split(':');
                     let menit = '-', detik = '-', ms = '-';
@@ -781,25 +879,26 @@
                         idx + 1,
                         item.player,
                         item.athlete_name || '-',
-                        menit, detik, ms, fmt,
-                        item.timestamp
+                        menit, detik, ms, fmt
                     ]);
                 });
 
                 const ws = XLSX.utils.aoa_to_sheet(sheetRows);
-                ws['!cols'] = [{wch:4},{wch:6},{wch:25},{wch:13},{wch:13},{wch:10},{wch:15},{wch:22}];
+                ws['!cols'] = [{wch:5},{wch:8},{wch:25},{wch:13},{wch:13},{wch:10},{wch:15}];
                 ws['!merges'] = [
-                    {s:{r:0,c:0},e:{r:0,c:7}},
-                    {s:{r:1,c:0},e:{r:1,c:7}},
-                    {s:{r:2,c:0},e:{r:2,c:7}}
+                    {s:{r:0,c:0},e:{r:0,c:6}},
+                    {s:{r:1,c:0},e:{r:1,c:6}},
+                    {s:{r:2,c:0},e:{r:2,c:6}}
                 ];
 
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Hasil IoT');
-                const filename = `Hasil_Waktu_IoT_${now.toISOString().slice(0,10)}.xlsx`;
+                XLSX.utils.book_append_sheet(wb, ws, 'Hasil Lomba');
+
+                const filename = `${fileTitle}.xlsx`;
                 XLSX.writeFile(wb, filename);
+                showToast(`File "${filename}" berhasil didownload!`, 'success');
             })
-        .catch(() => alert('❌ Gagal mengambil data untuk export!'));
+        .catch(() => showToast('❌ Gagal mengambil data untuk export!', 'error'));
     });
 
     // ===== INIT =====
