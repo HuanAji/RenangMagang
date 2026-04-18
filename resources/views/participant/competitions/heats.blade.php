@@ -77,13 +77,24 @@
         }
         .btn-load-heats:hover { background: #002277; }
 
+        /* Heat list layout */
+        #heat-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: start;
+        }
+        #heat-list .empty-state {
+            grid-column: 1 / -1;
+        }
+
         /* Heat cards */
         .heat-item {
             background: var(--bg-body);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
+            border-radius: 8px;
+            padding: 8px 10px; /* sedikit dikurangi sisi kanannya agar grid bernapas */
+            font-size: 0.8rem;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         .heat-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
@@ -92,26 +103,31 @@
             background: var(--accent-green-light);
         }
         .heat-item.completed-heat {
-            opacity: 0.55;
+            opacity: 0.8;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            filter: grayscale(80%);
         }
         .heat-item-header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
+            flex-wrap: wrap; /* in case badge is too wide */
+            gap: 4px;
         }
-        .heat-item-header strong { font-size: 0.92rem; color: var(--text-primary); }
+        .heat-item-header strong { font-size: 0.82rem; color: var(--text-primary); }
         .heat-badge {
-            font-size: 0.68rem; padding: 3px 8px; border-radius: 20px;
+            font-size: 0.6rem; padding: 2px 6px; border-radius: 8px;
             font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .heat-badge.pending { background: #f1f5f9; color: var(--text-secondary); }
+        .heat-badge.pending { background: #fef08a; color: #854d0e; } /* Menunggu = Kuning/Orange */
         .heat-badge.active { background: var(--accent-green-light); color: var(--accent-green); }
-        .heat-badge.completed { background: #f1f5f9; color: var(--text-muted); }
-        .heat-athletes { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.5; }
+        .heat-badge.completed { background: #e2e8f0; color: #64748b; text-decoration: line-through; } /* Selesai = Abu dicoret */
+        .heat-athletes { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.25; }
 
         .heat-actions { display: flex; gap: 6px; }
         .btn-heat {
-            flex: 1; padding: 7px 0; border: none; border-radius: 6px;
-            font-weight: 600; font-size: 0.78rem; cursor: pointer;
+            flex: 1; padding: 5px 0; border: none; border-radius: 4px;
+            font-weight: 600; font-size: 0.75rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 4px;
             transition: 0.2s;
         }
@@ -210,20 +226,20 @@
         .lane-table th {
             background: var(--bg-body);
             font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px;
-            color: var(--text-secondary); padding: 10px 14px; text-align: left;
+            color: var(--text-secondary); padding: 6px 14px; text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
         .lane-table td {
-            padding: 12px 14px;
+            padding: 6px 14px;
             border-bottom: 1px solid var(--border-color);
             font-size: 0.88rem;
         }
         .lane-table tr:last-child td { border-bottom: none; }
         .lane-num {
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 24px; height: 24px; border-radius: 50%;
             background: var(--accent-blue); color: white;
             display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.9rem;
+            font-weight: 700; font-size: 0.8rem;
         }
         .result-time { color: var(--accent-green); font-weight: 700; font-size: 1rem; }
         .no-time { color: var(--text-muted); font-style: italic; }
@@ -257,15 +273,14 @@
         .iot-table th {
             background: var(--bg-body);
             font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px;
-            color: var(--text-secondary); padding: 10px 14px; text-align: center;
+            color: var(--text-secondary); padding: 4px 10px; text-align: center;
             border-bottom: 1px solid var(--border-color);
             position: sticky; top: 0; z-index: 1;
         }
         .iot-table td {
-            padding: 9px 14px; border-bottom: 1px solid var(--border-color);
+            padding: 5px 10px; border-bottom: 1px solid var(--border-color);
             font-size: 0.85rem; text-align: center;
         }
-        .iot-table td:nth-child(3) { text-align: left; }
         .iot-table tr:hover { background: #f8fafc; }
 
         .empty-state {
@@ -363,7 +378,7 @@
             <table class="lane-table">
                 <thead>
                     <tr>
-                        <th style="width:60px; text-align:center;">Jalur</th>
+                        <th style="width:40px; text-align:center;">Jalur</th>
                         <th>Nama Atlet</th>
                         <th>Klub / Sekolah</th>
                         <th style="text-align:center;">Hasil Waktu</th>
@@ -380,34 +395,33 @@
         <!-- IoT Results -->
         <div class="iot-table-wrap">
             <div class="iot-table-header">
-                <h5>⏱️ Hasil Waktu IoT (Real-time)</h5>
+                <h5>⏱️ Hasil Waktu Lomba (Real-time)</h5>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <button class="btn-clear-iot" id="btn-reset-db" title="Hapus semua data dari database">
-                        <span class="material-icons" style="font-size:0.95rem;">delete_sweep</span> Reset Semua Waktu
+                    <button class="btn-clear-iot" id="btn-reset-db" title="Race Ulang">
+                        <span class="material-icons" style="font-size:0.95rem;">delete_sweep</span> Race Ulang
                     </button>
                     <button class="btn-clear-iot" id="btn-export-excel" title="Export ke Excel" style="background:var(--accent-green-light); color:var(--accent-green); border-color:rgba(22,163,74,0.2);">
                         <span class="material-icons" style="font-size:0.95rem;">table_view</span> Export Excel
                     </button>
-                    <button class="btn-clear-iot" id="btn-clear-iot" title="Bersihkan tampilan layar saja">
-                        <span class="material-icons" style="font-size:0.95rem;">cleaning_services</span> Bersihkan Layar
+                    <button class="btn-clear-iot" id="btn-end-session" title="Akhiri sesi dan selesaikan Heat">
+                        <span class="material-icons" style="font-size:0.95rem;">flag</span> Akhiri Sesi
                     </button>
                 </div>
             </div>
             <div class="iot-scroll">
                 <table class="iot-table">
                     <thead>
-                        <tr>
-                            <th style="width:4%;">No</th>
-                            <th style="width:6%;">Jalur</th>
-                            <th style="width:20%; text-align:left;">Nama Atlet</th>
-                            <th style="width:8%;">Menit</th>
-                            <th style="width:8%;">Detik</th>
-                            <th style="width:8%;">MS</th>
-                            <th style="width:14%;">Waktu Format</th>
+                            <th style="width:6%;">No</th>
+                            <th style="width:6%;">Player</th>
+                            <th style="width:12%; text-align:center;">Waktu (menit)</th>
+                            <th style="width:12%; text-align:center;">Waktu (detik)</th>
+                            <th style="width:12%; text-align:center;">Waktu (ms)</th>
+                            <th style="width:20%; text-align:center;">Waktu Format</th>
+                            <th style="width:26%; text-align:center;">Waktu Input</th>
                         </tr>
                     </thead>
                     <tbody id="iot-tbody">
-                        <tr><td colspan="8" class="empty-state" style="padding:30px;">
+                        <tr><td colspan="7" class="empty-state" style="padding:30px;">
                             <span class="material-icons">timer</span> Menunggu data dari alat IoT...
                         </td></tr>
                     </tbody>
@@ -442,6 +456,36 @@
                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
                 <button type="button" class="btn text-white px-4" id="btn-konfirmasi-generate" style="background-color:var(--accent-orange);">
                     Generate Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL KONFIRMASI AKHIRI SESI ===== -->
+<div class="modal fade" id="modal-end-session" tabindex="-1" aria-labelledby="modalEndSessionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:40px;height:40px;border-radius:50%;background:#e0f2fe;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-icons" style="color:#0284c7;font-size:1.3rem;">flag</span>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0" id="modalEndSessionLabel">Akhiri Sesi Ini?</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2" style="font-size:0.95rem;">Apakah Anda yakin ingin menyelesaikan Heat yang sedang aktif?</p>
+                <div class="alert alert-info py-2 px-3 m-0 d-flex gap-2" style="font-size:0.82rem;border-radius:8px; line-height: 1.4;">
+                    <span class="material-icons" style="font-size:1.2rem; flex-shrink:0;">info</span>
+                    <div>Tabel dan Daftar Peserta akan dikosongkan. Hasil akan tetap tersimpan.</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn text-white px-4" id="btn-konfirmasi-end-session" style="background-color:#0284c7;">
+                    Selesaikan Heat
                 </button>
             </div>
         </div>
@@ -524,6 +568,7 @@
 @push('scripts')
 <script>
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+    let ACTIVE_HEAT_ID = null;
 
     // ===== TOAST HELPER =====
     function showToast(msg, type = 'success') {
@@ -572,14 +617,15 @@
         bsModal.show();
     });
 
-    document.getElementById('btn-konfirmasi-generate').addEventListener('click', () => {
+    document.getElementById('btn-konfirmasi-generate').addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        const oriText = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Memproses...`;
+        btn.disabled = true;
+
         const eventId = document.getElementById('select-event').value;
         const gender = document.getElementById('select-gender').value;
         
-        const modalEl = document.getElementById('modal-generate-heat');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if(modalInstance) modalInstance.hide();
-
         fetch('/heats/regenerate', {
             method: 'POST',
             headers: {
@@ -592,15 +638,32 @@
         .then(r => r.json())
         .then(data => {
             showToast(data.message || 'Heat berhasil di-generate!', 'success');
+            const modalEl = document.getElementById('modal-generate-heat');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if(modalInstance) modalInstance.hide();
+            
             loadHeats();
         })
-        .catch(err => showToast('Gagal generate heat: ' + err.message, 'error'));
+        .catch(err => showToast('Gagal generate heat: ' + err.message, 'error'))
+        .finally(() => {
+            btn.innerHTML = oriText;
+            btn.disabled = false;
+        });
     });
 
     function loadHeats() {
         const eventId = document.getElementById('select-event').value;
         const gender = document.getElementById('select-gender').value;
         if (!eventId || !gender) { showToast('Pilih event dan jenis kelamin terlebih dahulu!', 'warning'); return; }
+        
+        const container = document.getElementById('heat-list');
+        container.innerHTML = `<div class="empty-state" style="padding:40px; grid-column: 1 / -1;">
+            <div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem; margin-bottom: 12px; color: var(--accent-blue) !important;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p style="margin:0; font-size:0.85rem; color:var(--text-secondary); font-weight:600;">Memuat Daftar Heat...</p>
+        </div>`;
+
         fetch(`/api/heats?event_id=${eventId}&jenis_kelamin=${gender}`)
             .then(r => r.json())
             .then(data => renderHeatList(data.heats, data.event_name));
@@ -623,10 +686,10 @@
             const badgeClass = heat.status;
             const badgeText = heat.status === 'active' ? '🔴 AKTIF' : heat.status === 'completed' ? '✅ SELESAI' : '⏳ MENUNGGU';
 
-            // Ringkasan peserta: jumlah + info penuh/tidak
+            // Ringkasan peserta: jumlah
             const pesertaInfo = isFull
-                ? `<span style="font-weight:600; color:var(--accent-green);">${totalPeserta} peserta</span> <span style="color:var(--text-muted); font-size:0.75rem;">(jalur 1–${totalPeserta})</span>`
-                : `<span style="font-weight:600; color:var(--accent-orange);">${totalPeserta} peserta</span> <span style="color:var(--text-muted); font-size:0.75rem;">(tidak penuh)</span>`;
+                ? `<span style="font-weight:600; color:var(--accent-green);">${totalPeserta} peserta</span>`
+                : `<span style="font-weight:600; color:var(--accent-orange);">${totalPeserta} peserta</span>`;
 
             // Semua heat bisa dipilih/diaktifkan bebas
             let actionHtml = '';
@@ -663,7 +726,20 @@
         if (!confirm('Tandai Heat ini selesai?')) return;
         fetch(`/heats/${id}/complete`, {
             method:'POST', headers:{'X-CSRF-TOKEN': CSRF, 'Accept':'application/json'}
-        }).then(r => r.json()).then(() => { loadHeats(); loadActiveHeat(); });
+        }).then(r => r.json()).then(() => { 
+            // Hapus rekam data IoT untuk Heat yang selesai
+            fetch('/results/clear-all', { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } })
+            .then(() => {
+                document.getElementById('iot-tbody').innerHTML = `<tr><td colspan="7" class="empty-state" style="padding:30px;">
+                    <span class="material-icons">flag</span> Heat telah diselesaikan.
+                </td></tr>`;
+                iotHidden = true;
+                setTimeout(() => { iotHidden = false; }, 4000); 
+
+                loadHeats(); 
+                loadActiveHeat(); 
+            });
+        });
     }
 
     // ===== ACTIVE HEAT =====
@@ -675,6 +751,7 @@
             const live = document.getElementById('ahb-live');
             const tbody = document.getElementById('lane-tbody');
             if (data.active) {
+                ACTIVE_HEAT_ID = data.heat_id;
                 banner.classList.remove('no-active');
                 title.textContent = data.info;
                 sub.textContent = `${data.lanes.length} Atlet siap berlomba`;
@@ -693,6 +770,7 @@
                 });
                 tbody.innerHTML = laneHtml;
             } else {
+                ACTIVE_HEAT_ID = null;
                 banner.classList.add('no-active');
                 title.textContent = 'Belum ada Heat aktif';
                 sub.textContent = 'Aktifkan salah satu Heat dari panel kiri untuk memulai perlombaan';
@@ -711,7 +789,7 @@
         fetch('/results/data').then(r => r.json()).then(data => {
             const tbody = document.getElementById('iot-tbody');
             if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="empty-state" style="padding:30px;">
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="padding:30px;">
                     <span class="material-icons">timer</span> Menunggu data dari alat IoT...
                 </td></tr>`;
                 return;
@@ -719,21 +797,18 @@
             let html = '';
             data.forEach((item, idx) => {
                 const format = item.waktu_format;
-                const parts = format.split(':');
-                let menit = '-', detik = '-', ms = '-';
-                if (parts.length === 2) {
-                    menit = parts[0];
-                    const sub = parts[1].split('.');
-                    detik = sub[0]; ms = sub[1] || '-';
-                }
-                const name = item.athlete_name || '<span style="color:var(--text-muted);">-</span>';
+                const menit = item.waktu_menit !== null ? ('0' + item.waktu_menit).slice(-2) : '00';
+                const detik = item.waktu_detik !== null ? ('0' + item.waktu_detik).slice(-2) : '00';
+                const ms = item.waktu_ms !== null ? ('00' + item.waktu_ms).slice(-3) : '000';
+                
                 html += `<tr>
-                    <td>${idx + 1}</td>
-                    <td><strong>${item.player}</strong></td>
-                    <td style="text-align:left;">${name}</td>
-                    <td>${menit}</td><td>${detik}</td><td>${ms}</td>
-                    <td><strong style="color:var(--accent-green);">${format}</strong></td>
-                    <td style="color:var(--text-secondary);font-size:0.8rem;">${item.timestamp}</td>
+                    <td style="text-align:center;">${idx + 1}</td>
+                    <td style="text-align:center;">${item.player}</td>
+                    <td style="text-align:center;">${menit}</td>
+                    <td style="text-align:center;">${detik}</td>
+                    <td style="text-align:center;">${ms}</td>
+                    <td style="text-align:center;">${format}</td>
+                    <td style="text-align:center;">${item.timestamp}</td>
                 </tr>`;
             });
             tbody.innerHTML = html;
@@ -779,13 +854,51 @@
         swWrap.classList.remove('sw-running', 'sw-stopped');
     });
 
-    // ===== CLEAR IOT (layar saja) =====
-    document.getElementById('btn-clear-iot').addEventListener('click', () => {
-        iotHidden = true;
-        document.getElementById('iot-tbody').innerHTML = `<tr><td colspan="8" class="empty-state" style="padding:30px;">
-            <span class="material-icons">timer</span> Layar dibersihkan. Menunggu data baru...
-        </td></tr>`;
-        setTimeout(() => { iotHidden = false; }, 3000);
+    // ===== AKHIRI SESI =====
+    document.getElementById('btn-end-session').addEventListener('click', () => {
+        if (!ACTIVE_HEAT_ID) {
+            showToast('Tidak ada Heat yang aktif untuk diselesaikan!', 'warning');
+            return;
+        }
+        new bootstrap.Modal(document.getElementById('modal-end-session')).show();
+    });
+
+    document.getElementById('btn-konfirmasi-end-session').addEventListener('click', () => {
+        bootstrap.Modal.getInstance(document.getElementById('modal-end-session'))?.hide();
+        
+        if (!ACTIVE_HEAT_ID) return;
+
+        // Panggil endpoint selesaikan heat
+        fetch(`/heats/${ACTIVE_HEAT_ID}/complete`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+        }).then(r => r.json()).then(res => {
+            showToast('Sesi Heat berhasil diselesaikan!', 'success');
+            
+            // Panggil API untuk hapus seluruh data IoT DB (agar saat buka heat baru layarnya kosong)
+            fetch('/results/clear-all', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF }
+            }).then(() => {
+                // UI Cleanup Peserta
+                document.getElementById('lane-tbody').innerHTML = `<tr><td colspan="4" class="empty-state" style="padding:40px;">
+                    <span class="material-icons">pool</span> Heat telah diakhiri. Aktifkan Heat lain.
+                </td></tr>`;
+                document.getElementById('ahb-title').innerHTML = '<span class="material-icons">waves</span> Belum ada Heat aktif';
+                ACTIVE_HEAT_ID = null;
+
+                // UI Cleanup IoT
+                document.getElementById('iot-tbody').innerHTML = `<tr><td colspan="7" class="empty-state" style="padding:30px;">
+                    <span class="material-icons">flag</span> Heat telah diselesaikan.
+                </td></tr>`;
+                
+                // Meredundasi beban fetching loadIoTResults sampai heat dihidupkan lagi
+                iotHidden = true;
+                setTimeout(() => { iotHidden = false; }, 4000); 
+                
+                loadHeats(); // Muat ulang navigasi kiri
+            });
+        }).catch(() => showToast('Gagal mengakhiri sesi', 'error'));
     });
 
     // ===== RESET SESI TERAKHIR (hanya hapus data batch/heat terakhir) =====

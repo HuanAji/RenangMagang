@@ -52,7 +52,7 @@ class HeatController extends Controller
         }
 
         $event = Event::find($eventId);
-        $heats = Heat::with('laneAssignments.athlete.trackRecords')
+        $heats = Heat::with('laneAssignments.athlete')
             ->where('event_id', $eventId)
             ->where('jenis_kelamin', $gender)
             ->orderBy('heat_number')
@@ -63,15 +63,11 @@ class HeatController extends Controller
                     'heat_number' => $heat->heat_number,
                     'status' => $heat->status,
                     'lanes' => $heat->laneAssignments->map(function ($la) use ($event) {
-                        $bestTr = $la->athlete->trackRecords
-                            ->where('nomor_lomba', $event->nama_event)
-                            ->sortBy('durasi_renang')
-                            ->first();
                         return [
                             'lane_number' => $la->lane_number,
                             'athlete_name' => $la->athlete->nama ?? '-',
                             'club' => $la->athlete->asal_club_sekolah ?? '-',
-                            'track_record' => $bestTr->durasi_renang ?? null,
+                            'track_record' => null, // Dihapus
                             'result_time' => $la->result_time,
                         ];
                     }),

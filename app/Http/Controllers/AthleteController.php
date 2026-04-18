@@ -11,7 +11,7 @@ class AthleteController extends Controller
 {
     public function index()
     {
-        $athletes = Athlete::with(['registrations.event', 'trackRecords'])->orderBy('created_at', 'desc')->get();
+        $athletes = Athlete::with(['registrations.event'])->orderBy('created_at', 'desc')->get();
         $events = Event::all();
         return view('athletes.index', compact('athletes', 'events'));
     }
@@ -30,7 +30,6 @@ class AthleteController extends Controller
     {
         $validated = $request->validate([
             'nama' => 'required|string',
-            'umur' => 'nullable|numeric',
             'tanggal_lahir' => 'nullable|date',
             'jenis_kelamin' => 'required|in:L,P',
             'asal_club_sekolah' => 'required|string',
@@ -43,7 +42,6 @@ class AthleteController extends Controller
         try {
             $athlete = Athlete::create([
                 'nama' => $validated['nama'],
-                'umur' => $validated['umur'] ?? null,
                 'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
                 'jenis_kelamin' => $validated['jenis_kelamin'],
                 'asal_club_sekolah' => $validated['asal_club_sekolah'],
@@ -75,7 +73,6 @@ class AthleteController extends Controller
     {
         try {
             $athlete->registrations()->delete();
-            $athlete->trackRecords()->delete();
             $athlete->delete();
             return response()->json(['message' => '✅ Atlet berhasil dihapus!'], 200);
         } catch (\Exception $e) {
@@ -87,7 +84,6 @@ class AthleteController extends Controller
     {
         $validated = $request->validate([
             'nama'             => 'required|string',
-            'umur'             => 'nullable|numeric',
             'jenis_kelamin'    => 'required|in:L,P',
             'asal_club_sekolah' => 'nullable|string',
         ]);

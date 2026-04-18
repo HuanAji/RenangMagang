@@ -9,10 +9,8 @@ class Athlete extends Model
     protected $table = 'athletes';
     protected $fillable = [
         'nama',
-        'umur',
         'tanggal_lahir',
         'jenis_kelamin',
-        'id_card_path',
         'kelengkapan_dokumen',
         'asal_club_sekolah',
         'provinsi',
@@ -28,10 +26,7 @@ class Athlete extends Model
         return $this->hasMany(Registration::class);
     }
 
-    public function trackRecords()
-    {
-        return $this->hasMany(TrackRecord::class);
-    }
+
 
     public function events()
     {

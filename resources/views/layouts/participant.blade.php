@@ -242,17 +242,6 @@
                     <span class="material-icons">emoji_events</span> Heat &amp; Jalur
                 </a>
             </li>
-
-            <li>
-                <a href="{{ route('operator.dashboard') }}" class="{{ request()->routeIs('operator.dashboard') ? 'active' : '' }}" style="color: #e65100;">
-                    <span class="material-icons" style="color:#e65100;">settings_remote</span> Operator / Wasit
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('athletes.index') }}" class="{{ request()->routeIs('athletes.index') ? 'active' : '' }}" style="color: #1565c0;">
-                    <span class="material-icons" style="color:#1565c0;">manage_accounts</span> Manajemen Atlet
-                </a>
-            </li>
         </ul>
     </div>
 
@@ -266,13 +255,20 @@
             </button>
             <div class="dropdown">
                 <a class="user-dropdown dropdown-toggle" href="#" role="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="color: white; text-decoration: none;">
-                    <div class="user-avatar">A</div>
-                    Hai, Aji
+                    <div class="user-avatar">{{ Auth::check() ? strtoupper(substr(Auth::user()->name, 0, 1)) : 'A' }}</div>
+                    Hai, {{ Auth::check() ? explode(' ', Auth::user()->name)[0] : 'Admin' }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                     <li><a class="dropdown-item d-flex align-items-center" href="#"><span class="material-icons me-2 text-muted" style="font-size: 1.1rem;">person</span> Profil</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item d-flex align-items-center" href="{{ route('login') }}"><span class="material-icons me-2 text-muted" style="font-size: 1.1rem;">logout</span> Keluar</a></li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+                            @csrf
+                            <button type="submit" class="dropdown-item d-flex align-items-center" style="border: none; background: transparent; width: 100%; text-align: left;">
+                                <span class="material-icons me-2 text-muted" style="font-size: 1.1rem;">logout</span> Keluar
+                            </button>
+                        </form>
+                    </li>
                 </ul>
             </div>
         </div>

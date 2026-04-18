@@ -86,38 +86,23 @@
             color: white;
         }
         
-        .btn-google {
-            background-color: #ff4d4f;
-            color: white;
+        .btn-custom-outline {
+            background-color: white;
+            color: #003399;
             padding: 10px;
             font-weight: 500;
-            border: none;
+            border: 1px solid #003399;
             width: 100%;
             border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        
-        .btn-google:hover {
-            background-color: #ff1a1c;
-            color: white;
-        }
-        
-        .forgot-pass {
-            font-size: 0.85rem;
-            float: right;
             text-decoration: none;
-            color: #003399;
         }
         
-        .google-icon {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-            background-color: white;
-            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"/></svg>') no-repeat center / contain;
-            -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"/></svg>') no-repeat center / contain;
+        .btn-custom-outline:hover {
+            background-color: #f0f4fa;
+            color: #003399;
         }
     </style>
 </head>
@@ -132,34 +117,32 @@
         <div class="card">
             <h4 class="card-title">Masuk</h4>
             
-            <form action="{{ route('participant.dashboard') }}" method="GET">
+            <form action="{{ route('login.post') }}" method="POST">
+                @csrf
+                
+                @if ($errors->any())
+                    <div class="alert alert-danger" style="font-size: 0.85rem; padding: 10px;">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+                
                 <div class="mb-3 position-relative">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" placeholder="Masukkan Email">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Masukkan Email" value="{{ old('email') }}" required>
                 </div>
                 
                 <div class="mb-3 position-relative">
-                    <label class="form-label d-inline-block">Password</label>
-                    <a href="#" class="forgot-pass">Lupa Password?</a>
-                    <input type="password" class="form-control" placeholder="Masukkan Password">
+                    <label class="form-label d-inline-block" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan Password" required>
                 </div>
                 
                 <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <input type="checkbox" name="remember" class="form-check-input" id="rememberMe">
                     <label class="form-check-label text-muted" style="font-size: 0.85rem;" for="rememberMe">Ingat Saya</label>
                 </div>
                 
                 <button type="submit" class="btn btn-custom-primary">Login</button>
-                <button type="button" class="btn btn-google mb-4">
-                    <span class="google-icon"></span> Login dengan Google
-                </button>
                 
-                <div class="text-start mt-4">
-                    <p class="text-muted mb-2" style="font-size: 0.85rem;">Belum Punya Akun?</p>
-                    <button type="button" class="btn btn-google">
-                        <span class="google-icon"></span> Daftar dengan Google
-                    </button>
-                </div>
             </form>
         </div>
     </div>

@@ -16,7 +16,11 @@ class ResultController extends Controller
 
     public function getData()
     {
-        $results = HasilLomba::orderBy('timestamp', 'desc')->get();
+        // Hitung jumlah batas penampilan berdasarkan heat aktif (maks sesuai jumlah perenang)
+        $activeHeat = \App\Models\Heat::where('status', 'active')->withCount('laneAssignments')->first();
+        $limit = $activeHeat ? max(1, $activeHeat->lane_assignments_count) : 8;
+
+        $results = HasilLomba::orderBy('id', 'desc')->limit($limit)->get();
 
         // Get all active heats' lane assignments for player-to-athlete mapping
         $activeHeats = \App\Models\Heat::where('status', 'active')
@@ -44,6 +48,9 @@ class ResultController extends Controller
             $item->event_name = $laneMap[$playerKey]['event_name'] ?? null;
             return $item;
         });
+
+        // Urutkan nilai-nilai menurut jalur/player dari terkecil ke terbesar
+        $results = $results->sortBy('player')->values();
 
         return response()->json($results);
     }
