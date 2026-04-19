@@ -3,8 +3,10 @@ vendor
 .env
 .env.local
 .env.*.local
-storage
-bootstrap/cache
+storage/*
+!storage/.gitkeep
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
 .DS_Store
 Thumbs.db
 *.log
