@@ -15,6 +15,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rute IoT (Alat tidak perlu login)
 Route::any('/insert.php', [ResultController::class, 'insertMentah'])->name('insert.php');
+Route::post('/athletes', [AthleteController::class, 'store'])->name('athletes.store');
 
 // ===== RUTE TERLINDUNGI (BUTUH LOGIN ADMIN) =====
 Route::middleware('auth')->group(function () {
@@ -24,7 +25,6 @@ Route::middleware('auth')->group(function () {
 
     // Athletes
     Route::get('/athletes', [AthleteController::class, 'index'])->name('athletes.index');
-    Route::post('/athletes', [AthleteController::class, 'store'])->name('athletes.store');
     Route::get('/athletes/{athlete}', [AthleteController::class, 'show'])->name('athletes.show');
     Route::put('/athletes/{athlete}', [AthleteController::class, 'update'])->name('athletes.update');
     Route::delete('/athletes/{athlete}', [AthleteController::class, 'destroy'])->name('athletes.destroy');

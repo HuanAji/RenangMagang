@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('nama');
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
-            $table->string('id_card_path', 500)->nullable();
+
             $table->string('asal_club_sekolah')->nullable();
             $table->timestamps();
             $table->index('nama');

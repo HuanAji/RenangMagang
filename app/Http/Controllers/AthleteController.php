@@ -33,8 +33,6 @@ class AthleteController extends Controller
             'tanggal_lahir' => 'nullable|date',
             'jenis_kelamin' => 'required|in:L,P',
             'asal_club_sekolah' => 'required|string',
-            'provinsi' => 'nullable|string',
-            'kabupaten_kota' => 'nullable|string',
             'event_id' => 'nullable|array',
             'event_id.*' => 'integer|exists:events,id',
         ]);
@@ -45,8 +43,6 @@ class AthleteController extends Controller
                 'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
                 'jenis_kelamin' => $validated['jenis_kelamin'],
                 'asal_club_sekolah' => $validated['asal_club_sekolah'],
-                'provinsi' => $validated['provinsi'] ?? null,
-                'kabupaten_kota' => $validated['kabupaten_kota'] ?? null,
             ]);
 
             if ($request->has('event_id') && is_array($validated['event_id'])) {
