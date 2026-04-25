@@ -320,6 +320,15 @@
                 <option value="L">Putra</option>
                 <option value="P">Putri</option>
             </select>
+            <select id="select-ku" class="panel-select">
+                <option value="">-- Semua Kelompok Umur --</option>
+                <option value="KU I">KU I (10–12 Tahun)</option>
+                <option value="KU II">KU II (13–14 Tahun)</option>
+                <option value="KU III">KU III (15–17 Tahun)</option>
+                <option value="KU IV">KU IV (18–24 Tahun)</option>
+                <option value="Senior">Senior / Open (25+ Tahun)</option>
+                <option value="Umum">Umum (di bawah 10 tahun)</option>
+            </select>
             <button class="btn-load-heats" id="btn-load-heats">
                 <span class="material-icons" style="font-size:1.1rem;">search</span> Tampilkan Heat
             </button>
@@ -551,6 +560,37 @@
         </div>
     </div>
 </div>
+
+<!-- ===== MODAL KONFIRMASI TANDAI SELESAI ===== -->
+<div class="modal fade" id="modal-tandai-selesai" tabindex="-1" aria-labelledby="modalTandaiSelesaiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:40px;height:40px;border-radius:50%;background:#e0f2fe;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-icons" style="color:#0284c7;font-size:1.3rem;">check_circle</span>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0" id="modalTandaiSelesaiLabel">Tandai Heat Selesai?</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2" style="font-size:0.95rem;">Apakah Anda yakin ingin menandai Heat ini sebagai selesai?</p>
+                <div class="alert alert-info py-2 px-3 m-0 d-flex gap-2" style="font-size:0.82rem;border-radius:8px; line-height: 1.4;">
+                    <span class="material-icons" style="font-size:1.2rem; flex-shrink:0;">info</span>
+                    <div>Data waktu dari alat akan disimpan secara permanen untuk Heat ini dan tabel akan dikosongkan.</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn text-white px-4" id="btn-konfirmasi-tandai-selesai" style="background-color:#0284c7;">
+                    Ya, Selesai
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ===== TOAST NOTIFIKASI ===== -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
     <div id="app-toast" class="toast align-items-center border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
@@ -653,7 +693,8 @@
 
     function loadHeats() {
         const eventId = document.getElementById('select-event').value;
-        const gender = document.getElementById('select-gender').value;
+        const gender  = document.getElementById('select-gender').value;
+        const ku      = document.getElementById('select-ku').value;
         if (!eventId || !gender) { showToast('Pilih event dan jenis kelamin terlebih dahulu!', 'warning'); return; }
         
         const container = document.getElementById('heat-list');
@@ -664,7 +705,10 @@
             <p style="margin:0; font-size:0.85rem; color:var(--text-secondary); font-weight:600;">Memuat Daftar Heat...</p>
         </div>`;
 
-        fetch(`/api/heats?event_id=${eventId}&jenis_kelamin=${gender}`)
+        let url = `/api/heats?event_id=${eventId}&jenis_kelamin=${gender}`;
+        if (ku) url += `&kelompok_umur=${encodeURIComponent(ku)}`;
+
+        fetch(url)
             .then(r => r.json())
             .then(data => renderHeatList(data.heats, data.event_name));
     }
@@ -678,20 +722,43 @@
             </div>`;
             return;
         }
+
+        // Warna badge per KU
+        const kuColors = {
+            'KU I':   { bg: '#e0f2fe', color: '#0369a1' },
+            'KU II':  { bg: '#dcfce7', color: '#15803d' },
+            'KU III': { bg: '#fef9c3', color: '#a16207' },
+            'KU IV':  { bg: '#ede9fe', color: '#7c3aed' },
+            'Senior': { bg: '#fee2e2', color: '#b91c1c' },
+            'Umum':   { bg: '#f1f5f9', color: '#64748b' },
+        };
+
+        let lastKU = null;
         let html = '';
         heats.forEach(heat => {
             const totalPeserta = heat.lanes.length;
             const isFull = totalPeserta >= 8;
             const statusClass = heat.status === 'active' ? 'active-heat' : heat.status === 'completed' ? 'completed-heat' : '';
-            const badgeClass = heat.status;
-            const badgeText = heat.status === 'active' ? '🔴 AKTIF' : heat.status === 'completed' ? '✅ SELESAI' : '⏳ MENUNGGU';
+            const badgeClass  = heat.status;
+            const badgeText   = heat.status === 'active' ? '🔴 AKTIF' : heat.status === 'completed' ? '✅ SELESAI' : '⏳ MENUNGGU';
+            const ku          = heat.kelompok_umur || '-';
+            const kuStyle     = kuColors[ku] || { bg: '#f1f5f9', color: '#64748b' };
 
-            // Ringkasan peserta: jumlah
+            // Tampilkan header pemisah KU jika berganti
+            if (ku !== lastKU) {
+                html += `<div style="grid-column: 1 / -1; margin-top: ${lastKU ? '8px' : '0'}; margin-bottom: 2px;">
+                    <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+                        background:${kuStyle.bg}; color:${kuStyle.color}; padding:3px 10px; border-radius:20px;">
+                        ${ku}
+                    </span>
+                </div>`;
+                lastKU = ku;
+            }
+
             const pesertaInfo = isFull
                 ? `<span style="font-weight:600; color:var(--accent-green);">${totalPeserta} peserta</span>`
                 : `<span style="font-weight:600; color:var(--accent-orange);">${totalPeserta} peserta</span>`;
 
-            // Semua heat bisa dipilih/diaktifkan bebas
             let actionHtml = '';
             if (heat.status === 'active') {
                 actionHtml = `<button class="btn-heat btn-complete" onclick="completeHeat(${heat.id})">
@@ -722,9 +789,23 @@
             method:'POST', headers:{'X-CSRF-TOKEN': CSRF, 'Accept':'application/json'}
         }).then(r => r.json()).then(() => { loadHeats(); loadActiveHeat(); });
     }
+    let pendingCompleteHeatId = null;
+    const modalTandaiSelesai = new bootstrap.Modal(document.getElementById('modal-tandai-selesai'));
+
     window.completeHeat = function(id) {
-        if (!confirm('Tandai Heat ini selesai?')) return;
-        fetch(`/heats/${id}/complete`, {
+        pendingCompleteHeatId = id;
+        modalTandaiSelesai.show();
+    }
+
+    document.getElementById('btn-konfirmasi-tandai-selesai').addEventListener('click', function() {
+        if (!pendingCompleteHeatId) return;
+        
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...`;
+        btn.disabled = true;
+
+        fetch(`/heats/${pendingCompleteHeatId}/complete`, {
             method:'POST', headers:{'X-CSRF-TOKEN': CSRF, 'Accept':'application/json'}
         }).then(r => r.json()).then(() => { 
             // Hapus rekam data IoT untuk Heat yang selesai
@@ -738,9 +819,19 @@
 
                 loadHeats(); 
                 loadActiveHeat(); 
+                
+                modalTandaiSelesai.hide();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                pendingCompleteHeatId = null;
+                showToast('Heat berhasil diselesaikan!', 'success');
             });
+        }).catch(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            showToast('Terjadi kesalahan!', 'error');
         });
-    }
+    });
 
     // ===== ACTIVE HEAT =====
     function loadActiveHeat() {
@@ -756,16 +847,35 @@
                 title.textContent = data.info;
                 sub.textContent = `${data.lanes.length} Atlet siap berlomba`;
                 live.style.display = 'block';
-                let laneHtml = '';
+                // Pertama, kita tentukan waktu final untuk tiap lane agar bisa disorting
                 data.lanes.forEach(l => {
-                    const timeHtml = l.result_time
-                        ? `<span class="result-time">${l.result_time}</span>`
+                    l.finalTime = l.result_time || window.latestIoT[l.lane_number];
+                    // Jika belum ada waktu, beri nilai sangat besar agar berada di urutan terbawah
+                    l.sortValue = l.finalTime ? l.finalTime : '99:99.999';
+                });
+
+                // Sort array berdasarkan sortValue (waktu tercepat di atas)
+                data.lanes.sort((a, b) => a.sortValue.localeCompare(b.sortValue));
+
+                let laneHtml = '';
+                let validRankCount = 1;
+                data.lanes.forEach(l => {
+                    let rankBadge = '';
+                    if (l.finalTime && l.sortValue !== '99:99.999') {
+                        if (validRankCount === 1) rankBadge = '<span style="position:absolute; right:-28px; top:50%; transform:translateY(-50%); font-size:1.2rem;" title="Juara 1">🥇</span>';
+                        else if (validRankCount === 2) rankBadge = '<span style="position:absolute; right:-28px; top:50%; transform:translateY(-50%); font-size:1.2rem;" title="Juara 2">🥈</span>';
+                        else if (validRankCount === 3) rankBadge = '<span style="position:absolute; right:-28px; top:50%; transform:translateY(-50%); font-size:1.2rem;" title="Juara 3">🥉</span>';
+                        validRankCount++;
+                    }
+
+                    const timeHtml = l.finalTime
+                        ? `<div style="position:relative; display:inline-block;"><span class="result-time">${l.finalTime}</span>${rankBadge}</div>`
                         : `<span class="no-time">menunggu...</span>`;
                     laneHtml += `<tr>
-                        <td style="text-align:center;"><span class="lane-num">${l.lane_number}</span></td>
+                        <td style="text-align:center;"><span class="lane-num" style="background:var(--accent-blue);">${l.lane_number}</span></td>
                         <td><strong>${l.athlete_name}</strong></td>
                         <td style="color:var(--text-secondary);">${l.club}</td>
-                        <td style="text-align:center;">${timeHtml}</td>
+                        <td style="text-align:center; white-space:nowrap;">${timeHtml}</td>
                     </tr>`;
                 });
                 tbody.innerHTML = laneHtml;
@@ -784,19 +894,23 @@
 
     // ===== IoT RESULTS =====
     let iotHidden = false;
+    window.latestIoT = {}; // Simpan waktu IoT secara global agar bisa dibaca tabel peserta
     function loadIoTResults() {
         if (iotHidden) return;
         fetch('/results/data').then(r => r.json()).then(data => {
             const tbody = document.getElementById('iot-tbody');
             if (!data || data.length === 0) {
+                window.latestIoT = {};
                 tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="padding:30px;">
                     <span class="material-icons">timer</span> Menunggu data dari alat IoT...
                 </td></tr>`;
                 return;
             }
             let html = '';
+            window.latestIoT = {};
             data.forEach((item, idx) => {
                 const format = item.waktu_format;
+                window.latestIoT[item.player] = format; // Simpan waktu untuk player/lane ini
                 const menit = item.waktu_menit !== null ? ('0' + item.waktu_menit).slice(-2) : '00';
                 const detik = item.waktu_detik !== null ? ('0' + item.waktu_detik).slice(-2) : '00';
                 const ms = item.waktu_ms !== null ? ('00' + item.waktu_ms).slice(-3) : '000';

@@ -10,6 +10,7 @@ class Heat extends Model
         'event_id',
         'heat_number',
         'jenis_kelamin',
+        'kelompok_umur',
         'status',
     ];
 

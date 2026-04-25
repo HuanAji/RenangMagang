@@ -7,7 +7,7 @@ use App\Models\Event;
 use App\Models\Heat;
 use App\Models\LaneAssignment;
 use App\Models\Registration;
-use App\Models\TrackRecord;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class HeatGeneratorService
@@ -15,14 +15,29 @@ class HeatGeneratorService
     const LANES_PER_HEAT = 8;
 
     /**
+     * Hitung Kelompok Umur (KU) berdasarkan umur atlet.
+     * Menggunakan sistem PRSI.
+     */
+    private function hitungKU(?int $umur): string
+    {
+        if ($umur === null || $umur < 10) return 'Umum';
+        if ($umur <= 12) return 'KU I';
+        if ($umur <= 14) return 'KU II';
+        if ($umur <= 17) return 'KU III';
+        if ($umur <= 24) return 'KU IV';
+        return 'Senior';
+    }
+
+    /**
      * Regenerate all heats for a specific event + jenis_kelamin.
-     * Called automatically when a new registration is created.
+     * Peserta dikelompokkan berdasarkan Kelompok Umur (KU) terlebih dahulu,
+     * baru kemudian dibagi per jalur (maks 8 per heat).
      */
     public function generateForEvent(int $eventId, string $jenisKelamin): void
     {
-        $event = Event::findOrFail($eventId);
+        Event::findOrFail($eventId);
 
-        // Get all registrations for this event + gender
+        // Ambil semua registrasi untuk event + gender ini
         $registrations = Registration::where('event_id', $eventId)
             ->whereHas('athlete', function ($q) use ($jenisKelamin) {
                 $q->where('jenis_kelamin', $jenisKelamin);
@@ -34,52 +49,67 @@ class HeatGeneratorService
             return;
         }
 
-        $sortedAthletes = [];
-        foreach ($registrations as $reg) {
-            $sortedAthletes[] = [
-                'registration' => $reg,
-                'athlete' => $reg->athlete,
-            ];
-        }
-
-        // Sort alphabetically by athlete name
-        usort($sortedAthletes, fn($a, $b) => strcmp($a['athlete']->nama, $b['athlete']->nama));
-
-        // Delete existing heats for this event + gender (will cascade delete lane_assignments)
+        // Hapus semua heat lama untuk event + gender ini (akan cascade ke lane_assignments)
         Heat::where('event_id', $eventId)
             ->where('jenis_kelamin', $jenisKelamin)
             ->delete();
 
-        // Chunk into heats of 8
-        $chunks = array_chunk($sortedAthletes, self::LANES_PER_HEAT);
+        // Kelompokkan peserta berdasarkan KU
+        $groups = [];
+        foreach ($registrations as $reg) {
+            $athlete = $reg->athlete;
 
-        // Standar kompetisi renang: heat yang tidak penuh (sisa) ditempatkan di AWAL
-        // sehingga heat 1 = heat dengan peserta sedikit, heat terakhir = heat terkuat/penuh
-        if (count($chunks) > 1) {
-            $lastChunk = end($chunks);
-            // Jika chunk terakhir tidak penuh (< 8), pindahkan ke depan
-            if (count($lastChunk) < self::LANES_PER_HEAT) {
-                array_pop($chunks);         // Hapus dari belakang
-                array_unshift($chunks, $lastChunk); // Taruh di depan
-            }
+            // Hitung umur dari kolom 'umur' atau dari 'tanggal_lahir'
+            $umur = $athlete->umur
+                ?? ($athlete->tanggal_lahir
+                    ? Carbon::parse($athlete->tanggal_lahir)->age
+                    : null);
+
+            $ku = $this->hitungKU($umur);
+            $groups[$ku][] = [
+                'registration' => $reg,
+                'athlete'      => $athlete,
+            ];
         }
 
-        DB::transaction(function () use ($chunks, $eventId, $jenisKelamin) {
-            foreach ($chunks as $heatIndex => $athleteGroup) {
-                $heat = Heat::create([
-                    'event_id'      => $eventId,
-                    'heat_number'   => $heatIndex + 1,
-                    'jenis_kelamin' => $jenisKelamin,
-                    'status'        => 'pending',
-                ]);
+        // Urutkan grup sesuai hierarki KU PRSI
+        $kuOrder = ['KU I', 'KU II', 'KU III', 'KU IV', 'Senior', 'Umum'];
+        uksort($groups, fn($a, $b) => array_search($a, $kuOrder) - array_search($b, $kuOrder));
 
-                foreach ($athleteGroup as $laneIndex => $entry) {
-                    LaneAssignment::create([
-                        'heat_id'         => $heat->id,
-                        'lane_number'     => $laneIndex + 1,
-                        'athlete_id'      => $entry['athlete']->id,
-                        'registration_id' => $entry['registration']->id,
+        DB::transaction(function () use ($groups, $eventId, $jenisKelamin) {
+            foreach ($groups as $ku => $athletes) {
+                // Urutkan alfabet dalam tiap KU
+                usort($athletes, fn($a, $b) => strcmp($a['athlete']->nama, $b['athlete']->nama));
+
+                // Bagi per 8 jalur
+                $chunks = array_chunk($athletes, self::LANES_PER_HEAT);
+
+                // Standar kompetisi: chunk tidak penuh dipindah ke DEPAN (Heat 1)
+                if (count($chunks) > 1) {
+                    $lastChunk = end($chunks);
+                    if (count($lastChunk) < self::LANES_PER_HEAT) {
+                        array_pop($chunks);
+                        array_unshift($chunks, $lastChunk);
+                    }
+                }
+
+                foreach ($chunks as $heatIndex => $athleteGroup) {
+                    $heat = Heat::create([
+                        'event_id'      => $eventId,
+                        'heat_number'   => $heatIndex + 1,
+                        'jenis_kelamin' => $jenisKelamin,
+                        'kelompok_umur' => $ku,
+                        'status'        => 'pending',
                     ]);
+
+                    foreach ($athleteGroup as $laneIndex => $entry) {
+                        LaneAssignment::create([
+                            'heat_id'         => $heat->id,
+                            'lane_number'     => $laneIndex + 1,
+                            'athlete_id'      => $entry['athlete']->id,
+                            'registration_id' => $entry['registration']->id,
+                        ]);
+                    }
                 }
             }
         });
@@ -87,7 +117,7 @@ class HeatGeneratorService
 
     /**
      * Regenerate heats for ALL events + genders that this athlete is registered in.
-     * Called after a new registration.
+     * Dipanggil otomatis saat registrasi baru dibuat.
      */
     public function regenerateForRegistration(Registration $registration): void
     {
@@ -98,6 +128,4 @@ class HeatGeneratorService
 
         $this->generateForEvent($registration->event_id, $athlete->jenis_kelamin);
     }
-
-
 }

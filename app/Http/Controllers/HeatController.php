@@ -44,38 +44,43 @@ class HeatController extends Controller
      */
     public function getHeatsApi(Request $request)
     {
-        $eventId = $request->get('event_id');
-        $gender = $request->get('jenis_kelamin');
+        $eventId       = $request->get('event_id');
+        $gender        = $request->get('jenis_kelamin');
+        $kelompokUmur  = $request->get('kelompok_umur'); // opsional — null = tampilkan semua KU
 
         if (!$eventId || !$gender) {
             return response()->json(['heats' => [], 'event_name' => '']);
         }
 
         $event = Event::find($eventId);
-        $heats = Heat::with('laneAssignments.athlete')
+        $query = Heat::with('laneAssignments.athlete')
             ->where('event_id', $eventId)
-            ->where('jenis_kelamin', $gender)
-            ->orderBy('heat_number')
-            ->get()
+            ->where('jenis_kelamin', $gender);
+
+        if ($kelompokUmur) {
+            $query->where('kelompok_umur', $kelompokUmur);
+        }
+
+        $heats = $query->orderBy('kelompok_umur')->orderBy('heat_number')->get()
             ->map(function ($heat) use ($event) {
                 return [
-                    'id' => $heat->id,
-                    'heat_number' => $heat->heat_number,
-                    'status' => $heat->status,
-                    'lanes' => $heat->laneAssignments->map(function ($la) use ($event) {
+                    'id'            => $heat->id,
+                    'heat_number'   => $heat->heat_number,
+                    'kelompok_umur' => $heat->kelompok_umur ?? '-',
+                    'status'        => $heat->status,
+                    'lanes'         => $heat->laneAssignments->map(function ($la) use ($event) {
                         return [
-                            'lane_number' => $la->lane_number,
+                            'lane_number'  => $la->lane_number,
                             'athlete_name' => $la->athlete->nama ?? '-',
-                            'club' => $la->athlete->asal_club_sekolah ?? '-',
-                            'track_record' => null, // Dihapus
-                            'result_time' => $la->result_time,
+                            'club'         => $la->athlete->asal_club_sekolah ?? '-',
+                            'result_time'  => $la->result_time,
                         ];
                     }),
                 ];
             });
 
         return response()->json([
-            'heats' => $heats,
+            'heats'      => $heats,
             'event_name' => $event->nama_event ?? '',
         ]);
     }
@@ -95,23 +100,25 @@ class HeatController extends Controller
 
         $lanes = $heat->laneAssignments->map(function ($la) {
             return [
-                'lane_number' => $la->lane_number,
+                'lane_number'  => $la->lane_number,
                 'athlete_name' => $la->athlete->nama ?? '-',
-                'club' => $la->athlete->asal_club_sekolah ?? '-',
-                'result_time' => $la->result_time,
+                'club'         => $la->athlete->asal_club_sekolah ?? '-',
+                'result_time'  => $la->result_time,
             ];
         });
 
-        $genderLabel = $heat->jenis_kelamin === 'L' ? 'Putra' : 'Putri';
+        $genderLabel     = $heat->jenis_kelamin === 'L' ? 'Putra' : 'Putri';
+        $kelompokUmurLabel = $heat->kelompok_umur ?? '-';
 
         return response()->json([
-            'active' => true,
-            'heat_id' => $heat->id,
-            'heat_number' => $heat->heat_number,
-            'event_name' => $heat->event->nama_event ?? '-',
-            'gender' => $genderLabel,
-            'info' => ($heat->event->nama_event ?? '') . ' — ' . $genderLabel . ' — Heat ' . $heat->heat_number,
-            'lanes' => $lanes,
+            'active'        => true,
+            'heat_id'       => $heat->id,
+            'heat_number'   => $heat->heat_number,
+            'kelompok_umur' => $kelompokUmurLabel,
+            'event_name'    => $heat->event->nama_event ?? '-',
+            'gender'        => $genderLabel,
+            'info'          => ($heat->event->nama_event ?? '') . ' — ' . $genderLabel . ' — ' . $kelompokUmurLabel . ' — Heat ' . $heat->heat_number,
+            'lanes'         => $lanes,
         ]);
     }
 

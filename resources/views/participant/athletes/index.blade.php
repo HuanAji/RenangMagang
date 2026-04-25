@@ -67,11 +67,11 @@
                 <thead class="table-light">
                     <tr>
                         <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">No</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Nama</th>
-                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Umur</th>
+                        <th style="text-align: center; color: #666; font-size: 0.9rem; font-weight: 600;">Nama</th>
+                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Kelompok Umur</th>
                         <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Jenis Kelamin</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Asal Klub/Sekolah</th>
-                        <th style="color: #666; font-size: 0.9rem; font-weight: 600;">Event</th>
+                        <th style="text-align: center; color: #666; font-size: 0.9rem; font-weight: 600;">Asal Klub/Sekolah</th>
+                        <th style="text-align: center; color: #666; font-size: 0.9rem; font-weight: 600;">Event</th>
                         <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600; width: 110px;">Aksi</th>
                     </tr>
                 </thead>
@@ -80,7 +80,29 @@
                         <tr>
                             <td class="text-center">{{ ($athletes->currentPage() - 1) * $athletes->perPage() + $loop->iteration }}</td>
                             <td>{{ $athlete->nama }}</td>
-                            <td class="text-center">{{ $athlete->umur ? $athlete->umur . ' Tahun' : ($athlete->tanggal_lahir ? \Carbon\Carbon::parse($athlete->tanggal_lahir)->age . ' Tahun' : '-') }}</td>
+                            <td class="text-center">
+    @php
+        $umur = $athlete->umur ?? ($athlete->tanggal_lahir ? \Carbon\Carbon::parse($athlete->tanggal_lahir)->age : null);
+        if ($umur === null) {
+            $kuLabel = '-';
+        } elseif ($umur < 10)      { $kuLabel = null; }
+        elseif ($umur <= 12)       { $kuLabel = 'KU I (10–12 Tahun)'; }
+        elseif ($umur <= 14)       { $kuLabel = 'KU II (13–14 Tahun)'; }
+        elseif ($umur <= 17)       { $kuLabel = 'KU III (15–17 Tahun)'; }
+        elseif ($umur <= 24)       { $kuLabel = 'KU IV (18–24 Tahun)'; }
+        else                       { $kuLabel = 'Senior / Open (25+ Tahun)'; }
+    @endphp
+
+    @if($umur === null)
+        <span style="color:#aaa;">-</span>
+    @elseif($kuLabel === null)
+        <div class="fw-bold">{{ $umur }} Tahun</div>
+        <div style="font-size:0.78rem; color:#aaa;">Belum masuk KU</div>
+    @else
+        <div class="fw-bold">{{ $umur }} Tahun</div>
+        <div style="font-size:0.78rem; color:#003399; font-weight: 500;">{{ $kuLabel }}</div>
+    @endif
+</td>
                             <td class="text-center">{{ $athlete->jenis_kelamin === 'L' ? 'Laki-laki' : ($athlete->jenis_kelamin === 'P' ? 'Perempuan' : '-') }}</td>
                             <td>{{ $athlete->asal_club_sekolah ?? '-' }}</td>
                             <td>
@@ -145,7 +167,7 @@
 
 <div id="modal-peserta" class="custom-modal-overlay">
     <div class="bg-white p-4 rounded shadow" style="width:100%;max-width:550px;max-height:90vh;overflow-y:auto; position: relative;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold mb-0 text-secondary">Tambah Atlet</h5>
             <button type="button" class="btn-close" style="font-size: 0.8rem;" aria-label="Close" id="btn-cancel-peserta"></button>
         </div>
@@ -153,24 +175,33 @@
         <form id="form-peserta" method="POST" action="{{ route('athletes.store') }}">
             @csrf
 
-            <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Nama Atlet</label>
+            <div class="mb-2">
+                <label class="form-label mb-1" style="font-size: 0.85rem; color: #555;">Nama Atlet</label>
                 <input type="text" name="nama" class="form-control" placeholder="Nama Atlet" required style="border-color: #b3d4ff; font-size: 0.9rem;">
             </div>
 
-            <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Tanggal Lahir</label>
-                <input type="date" name="tanggal_lahir" class="form-control" required style="border-color: #e0e6ed; font-size: 0.9rem;">
+            <div class="mb-2">
+                <label class="form-label mb-1" style="font-size: 0.85rem; color: #555;">Tanggal Lahir</label>
+                <input type="date" name="tanggal_lahir" id="input-tanggal-lahir" class="form-control" required style="border-color: #e0e6ed; font-size: 0.9rem;">
+                <div id="preview-ku" style="display:none; margin-top: 4px;">
+                    <div id="label-ku-full" style="font-size: 0.85rem; color: #003399; font-weight: 500;"></div>
+                </div>
+                <div id="preview-ku-warning" style="display:none; margin-top: 4px;">
+                    <span style="font-size: 0.8rem; color: #ff4d4f;">
+                        <span class="material-icons" style="font-size: 0.9rem; vertical-align: middle;">warning</span>
+                        Atlet di bawah 10 tahun tidak masuk kategori KU manapun.
+                    </span>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Asal Klub / Sekolah</label>
+            <div class="mb-2">
+                <label class="form-label mb-1" style="font-size: 0.85rem; color: #555;">Asal Klub / Sekolah</label>
                 <div class="d-flex gap-2">
                     <select id="select-asal-klub" name="asal_club_sekolah" class="form-select text-muted" required style="border-color: #e0e6ed; font-size: 0.9rem;">
                         <option value="" disabled selected>Pilih Asal Sekolah / Klub</option>
+                        <option value="SMA Negeri 2 Jakarta">SMA Negeri 2 Jakarta</option>
                         <option value="Samator Swimming Club">Samator Swimming Club</option>
                         <option value="Universitas Gadjah Mada">Universitas Gadjah Mada</option>
-                        <option value="Universitas Negeri Yogyakarta">Universitas Negeri Yogyakarta</option>
                     </select>
                     <button type="button" id="btn-tambah-klub" class="btn text-white px-3" style="background-color: #52c41a;" title="Tambah sekolah/klub baru">
                         <span class="material-icons" id="icon-tambah-klub" style="font-size: 1.1rem; vertical-align: middle;">add</span>
@@ -204,17 +235,17 @@
                 </div>
             </div>
 
-            <div class="mb-4 mt-2">
+            <div class="mb-3 mt-1">
                 <small class="text-danger" style="font-size: 0.8rem;">*Pastikan ulang semua data yang diinputkan telah benar!</small>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label" style="font-size: 0.85rem; color: #555;">Pilih Event</label>
-                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+            <div class="mb-2">
+                <label class="form-label mb-1" style="font-size: 0.85rem; color: #555;">Pilih Event</label>
+                <div style="max-height: 180px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 4px;">
                     @foreach($events as $event)
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="event_id[]" value="{{ $event->id }}" id="event_{{ $event->id }}">
-                        <label class="form-check-label" for="event_{{ $event->id }}">
+                        <label class="form-check-label" for="event_{{ $event->id }}" style="font-size: 0.9rem;">
                             {{ $event->nama_event }}
                         </label>
                     </div>
@@ -307,8 +338,8 @@
     const form      = document.getElementById('form-peserta');
 
     btnAdd.addEventListener('click', () => { modal.style.display = 'flex'; });
-    cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; form.reset(); resetTambahKlub(); });
-    modal.addEventListener('click', (e) => { if (e.target === modal) { modal.style.display = 'none'; form.reset(); resetTambahKlub(); } });
+    cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; form.reset(); resetTambahKlub(); resetPreviewKU(); });
+    modal.addEventListener('click', (e) => { if (e.target === modal) { modal.style.display = 'none'; form.reset(); resetTambahKlub(); resetPreviewKU(); } });
 
     // ===== TOMBOL TAMBAH KLUB =====
     const btnTambahKlub = document.getElementById('btn-tambah-klub');
@@ -437,8 +468,56 @@
         })
         .catch(err => showToast('Error: ' + err.message, 'error'));
     });
+
+    // ===== KELOMPOK UMUR OTOMATIS (PRSI) =====
+    function hitungKU(tanggalLahir) {
+        const lahir = new Date(tanggalLahir);
+        const today = new Date();
+        let umur = today.getFullYear() - lahir.getFullYear();
+        const belumUltah =
+            today.getMonth() < lahir.getMonth() ||
+            (today.getMonth() === lahir.getMonth() && today.getDate() < lahir.getDate());
+        if (belumUltah) umur--;
+
+        if (umur < 10)  return { ku: null, umur };
+        if (umur <= 12) return { ku: 'KU I (10–12 Tahun)', umur };
+        if (umur <= 14) return { ku: 'KU II (13–14 Tahun)', umur };
+        if (umur <= 17) return { ku: 'KU III (15–17 Tahun)', umur };
+        if (umur <= 24) return { ku: 'KU IV (18–24 Tahun)', umur };
+        return { ku: 'Senior / Open (25+ Tahun)', umur };
+    }
+
+    document.getElementById('input-tanggal-lahir').addEventListener('change', function () {
+        const val = this.value;
+        const previewKU      = document.getElementById('preview-ku');
+        const previewWarning = document.getElementById('preview-ku-warning');
+        const labelKU        = document.getElementById('label-ku');
+        const labelUmur      = document.getElementById('label-umur');
+
+        if (!val) {
+            previewKU.style.display      = 'none';
+            previewWarning.style.display = 'none';
+            return;
+        }
+
+        const { ku, umur } = hitungKU(val);
+
+        if (ku === null) {
+            previewKU.style.display      = 'none';
+            previewWarning.style.display = 'block';
+        } else {
+            const labelFull = document.getElementById('label-ku-full');
+            previewKU.style.display      = 'block';
+            previewWarning.style.display = 'none';
+            labelFull.textContent = ku + ' (' + umur + ' tahun)';
+        }
+    });
+
+    function resetPreviewKU() {
+        document.getElementById('preview-ku').style.display       = 'none';
+        document.getElementById('preview-ku-warning').style.display = 'none';
+        document.getElementById('input-tanggal-lahir').value      = '';
+    }
 </script>
 @endpush
 @endsection
-
-
