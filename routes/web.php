@@ -59,15 +59,24 @@ Route::middleware('auth')->group(function () {
     // Participant Dashboard routes
     Route::prefix('participant')->name('participant.')->group(function () {
         Route::get('/dashboard', function () {
-            $kompetisiAktif = 1; // Contoh 1 kompetisi aktif
-            $cabangDidaftarkan = \App\Models\Registration::count();
-            $tagihanTervalidasi = 0;
-            $totalTagihan = 0;
+            // Metrik Lomba Renang
+            $totalKlub = \App\Models\Athlete::distinct('asal_club_sekolah')->count('asal_club_sekolah');
             $atletTerdaftar = \App\Models\Athlete::count();
+            $totalPendaftaran = \App\Models\Registration::count();
+            $totalHeat = \App\Models\Heat::count();
+            
             $peserta = \App\Models\Registration::with(['athlete', 'event'])->orderBy('created_at', 'desc')->take(10)->get();
 
+            // Ringkasan Heat: jumlah heat per event + per KU
+            $heatSummary = \App\Models\Heat::selectRaw('event_id, kelompok_umur, COUNT(*) as total_heats')
+                ->with('event')
+                ->groupBy('event_id', 'kelompok_umur')
+                ->orderBy('event_id')
+                ->get()
+                ->groupBy('event_id');
+
             return view('participant.dashboard', compact(
-                'kompetisiAktif', 'cabangDidaftarkan', 'tagihanTervalidasi', 'totalTagihan', 'atletTerdaftar', 'peserta'
+                'totalKlub', 'atletTerdaftar', 'totalPendaftaran', 'totalHeat', 'peserta', 'heatSummary'
             ));
         })->name('dashboard');
         
