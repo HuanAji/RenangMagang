@@ -39,10 +39,12 @@
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             z-index: 1000;
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar-brand {
-            padding: 25px 15px 15px;
+            padding: 30px 15px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -55,37 +57,113 @@
         }
 
         .sidebar-nav {
-            padding-top: 20px;
+            padding-top: 25px;
             list-style: none;
             padding-left: 0;
+            flex-grow: 1; /* Fills remaining space to push bottom nav down */
+            margin-bottom: 0;
+            overflow-y: auto;
         }
 
         .sidebar-nav li {
             width: 100%;
+            margin-bottom: 4px;
         }
 
         .sidebar-nav a {
             padding: 12px 20px;
             display: flex;
             align-items: center;
-            color: #6c757d;
+            color: #64748b;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 0.95rem;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
         }
 
         .sidebar-nav a .material-icons {
             width: 25px;
-            margin-right: 10px;
+            margin-right: 12px;
             text-align: center;
             font-size: 1.3rem;
+            transition: color 0.2s ease;
         }
 
         .sidebar-nav a:hover, .sidebar-nav a.active {
             color: var(--primary-blue);
-            background-color: rgba(0, 51, 153, 0.05);
-            border-right: 3px solid var(--primary-blue);
+            background: linear-gradient(90deg, rgba(0, 51, 153, 0.31) 0%, rgba(255, 255, 255, 0) 100%);
+            border-left-color: var(--primary-blue);
+        }
+
+        .sidebar-nav a:hover .material-icons, .sidebar-nav a.active .material-icons {
+            color: var(--primary-blue);
+        }
+
+        /* Sidebar Bottom */
+        .sidebar-bottom {
+            padding: 20px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .sidebar-warning {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid rgba(0,0,0,0.04);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .sidebar-warning-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .sidebar-warning-text {
+            font-size: 0.72rem;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .sidebar-warning-link {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #003399;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .sidebar-warning-link:hover {
+            color: #001a4d;
+            text-decoration: underline;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+        }
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        }
+        .logout-btn .material-icons {
+            font-size: 1.1rem;
+            margin-right: 8px;
+            color: #f87171;
         }
 
         /* Submenu */
@@ -243,6 +321,18 @@
                 </a>
             </li>
         </ul>
+        
+        <!-- Bottom Section -->
+        <div class="sidebar-bottom">
+            <div class="sidebar-warning">
+                <div class="sidebar-warning-title">Persiapan Lomba</div>
+                <div class="sidebar-warning-text">Pastikan semua atlet telah terdaftar sebelum mengelola jadwal.</div>
+                <a href="{{ route('participant.competitions.heats') }}" class="sidebar-warning-link">Kelola Heat <span class="material-icons" style="font-size: 0.9rem;">arrow_forward</span></a>
+            </div>
+            <button type="button" class="logout-btn" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <span class="material-icons">logout</span> Log Out
+            </button>
+        </div>
     </div>
 
 
@@ -262,12 +352,9 @@
                     <li><a class="dropdown-item d-flex align-items-center" href="#"><span class="material-icons me-2 text-muted" style="font-size: 1.1rem;">person</span> Profil</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
-                            @csrf
-                            <button type="submit" class="dropdown-item d-flex align-items-center" style="border: none; background: transparent; width: 100%; text-align: left;">
-                                <span class="material-icons me-2 text-muted" style="font-size: 1.1rem;">logout</span> Keluar
-                            </button>
-                        </form>
+                        <button type="button" class="dropdown-item d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#logoutModal" style="border: none; background: transparent; width: 100%; text-align: left;">
+                            <span class="material-icons me-2 text-muted" style="font-size: 1.1rem;">logout</span> Log Out
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -289,6 +376,31 @@
                 <span class="text-muted" style="font-size: 0.85rem;">Made with ❤️ by SWIMPOOL © 2026</span>
             </div>
         </footer>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pt-2 pb-4 px-4">
+                    <div style="width: 80px; height: 80px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <span class="material-icons text-danger" style="font-size: 2.5rem;">logout</span>
+                    </div>
+                    <h4 class="fw-bold mb-2" style="color: #1e293b;">Konfirmasi Keluar</h4>
+                    <p class="text-muted mb-0" style="font-size: 0.95rem;">Apakah Anda yakin ingin keluar dari sistem? Sesi Anda akan diakhiri.</p>
+                </div>
+                <div class="modal-footer border-0 d-flex justify-content-center pb-4 pt-0 gap-2">
+                    <button type="button" class="btn btn-light px-4 py-2" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 600; border: 1px solid #e2e8f0;">Batal</button>
+                    <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+                        @csrf
+                        <button type="submit" class="btn btn-danger px-4 py-2" style="border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none;">Ya, Keluar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->

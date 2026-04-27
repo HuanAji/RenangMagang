@@ -3,146 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Daftar</title>
-    <!-- Bootstrap 5 CSS -->
+    <title>Login</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <style>
         body {
-            background-color: #f4f6f9;
-            font-family: 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
             height: 100vh;
+            margin: 0;
+
+            /* Background Image */
+            background: url("{{ asset('images/swimmingonpool.png') }}") no-repeat center center/cover;
+
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
-        
+
+        /* Overlay biar lebih readable */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
         .login-box {
             width: 100%;
-            max-width: 500px;
-            padding: 15px;
+            max-width: 420px;
+            z-index: 1;
         }
-        
+
         .logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
-        
+
+        .logo h2 {
+            color: white;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+
+        /* Glassmorphism Card */
         .card {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            background: white;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
             padding: 30px;
+            color: white;
         }
-        
+
         .card-title {
             text-align: center;
             font-weight: bold;
-            color: #003399;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #003399;
+            margin-bottom: 20px;
         }
-        
+
         .form-label {
             font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 0.3rem;
+            color: #eee;
         }
-        
+
         .form-control {
-            border-color: #e0e6ed;
-            padding: 10px 15px;
-            font-size: 0.95rem;
-            margin-bottom: 15px;
-        }
-        
-        .form-control:focus {
-            border-color: #003399;
-            box-shadow: 0 0 0 0.2rem rgba(0, 51, 153, 0.25);
-        }
-        
-        .btn-custom-primary {
-            background-color: #003399;
+            background: rgba(255,255,255,0.2);
+            border: none;
             color: white;
-            padding: 10px;
-            font-weight: 500;
+            padding: 10px 15px;
+        }
+
+        .form-control::placeholder {
+            color: #ddd;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.3);
+            box-shadow: none;
+            color: white;
+        }
+
+        .form-check-label {
+            color: #ddd;
+            font-size: 0.85rem;
+        }
+
+        .btn-custom-primary {
+            background: rgba(0, 51, 153, 0.85);
+            color: white;
             border: none;
             width: 100%;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-custom-primary:hover {
-            background-color: #002266;
-            color: white;
-        }
-        
-        .btn-custom-outline {
-            background-color: white;
-            color: #003399;
             padding: 10px;
-            font-weight: 500;
-            border: 1px solid #003399;
-            width: 100%;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
         }
-        
-        .btn-custom-outline:hover {
-            background-color: #f0f4fa;
-            color: #003399;
+
+        .btn-custom-primary:hover {
+            background: #003399;
+        }
+
+        .alert {
+            font-size: 0.85rem;
+            padding: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="login-box">
-        <div class="logo">
-            <img src="{{ asset('images/logo.png') }}" alt="SwimPool Logo" style="max-height: 140px; width: auto; max-width: 100%;">
-            <h2 style="color: #003399; font-weight: 800; margin-top: 15px;">SwimPool</h2>
-        </div>
-        
         <div class="card">
-            <h4 class="card-title">Masuk</h4>
-            
+            <div class="text-left mb-4">
+                <h2 style="font-weight: 700;">Login</h2>
+                <p style="font-size: 0.9rem; color: #ddd; margin-top: 5px;">
+                    Welcome back, please login to your account
+                </p>
+            </div>
             <form action="{{ route('login.post') }}" method="POST">
                 @csrf
-                
+
                 @if ($errors->any())
-                    <div class="alert alert-danger" style="font-size: 0.85rem; padding: 10px;">
+                    <div class="alert alert-danger">
                         {{ $errors->first() }}
                     </div>
                 @endif
-                
-                <div class="mb-3 position-relative">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-control" placeholder="Masukkan Email" value="{{ old('email') }}" required>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" placeholder="Masukkan Email" required>
                 </div>
-                
-                <div class="mb-3 position-relative">
-                    <label class="form-label d-inline-block" for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Masukkan Password" required>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Masukkan Password" required>
                 </div>
-                
+
                 <div class="mb-3 form-check">
                     <input type="checkbox" name="remember" class="form-check-input" id="rememberMe">
-                    <label class="form-check-label text-muted" style="font-size: 0.85rem;" for="rememberMe">Ingat Saya</label>
+                    <label class="form-check-label" for="rememberMe">Ingat Saya</label>
                 </div>
-                
+
                 <button type="submit" class="btn btn-custom-primary">Login</button>
-                
             </form>
         </div>
     </div>

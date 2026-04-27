@@ -2,8 +2,35 @@
 @section('title', 'Dashboard')
 
 @section('breadcrumb')
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
+@php
+    $hour = now()->format('H');
+    if ($hour < 12) {
+        $greeting = 'Selamat pagi';
+    } elseif ($hour < 15) {
+        $greeting = 'Selamat siang';
+    } elseif ($hour < 18) {
+        $greeting = 'Selamat sore';
+    } else {
+        $greeting = 'Selamat malam';
+    }
+@endphp
+    <div class="pt-3 pb-2 mb-1">
+        <div class="d-flex align-items-center mb-3">
+            <span class="badge rounded-pill d-flex align-items-center gap-1" style="background-color: rgba(34, 197, 94, 0.15); color: #15803d; padding: 6px 12px; font-weight: 600; letter-spacing: 0.3px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <span class="material-icons" style="font-size: 0.95rem;">check_circle</span> Semua sistem normal
+            </span>
+            <span class="text-muted ms-3" style="font-size: 0.85rem; font-weight: 500;">
+                {{ now()->translatedFormat('l, d M Y') }}
+            </span>
+        </div>
+        
+        <h1 class="fw-bold mb-2" style="font-size: 2.4rem; color: #1e293b; letter-spacing: -1px;">
+            {{ $greeting }}, <span style="font-style: italic; color: #003399; font-weight: 800;">{{ Auth::check() ? explode(' ', Auth::user()->name)[0] : 'Peserta' }}.</span>
+        </h1>
+        
+        <p class="text-muted" style="font-size: 0.95rem; max-width: 650px; line-height: 1.6;">
+            Ringkasan performa dan pendaftaran lomba Anda bulan ini — akses statistik klub, kelola atlet, dan pantau jadwal Heat lomba secara langsung.
+        </p>
     </div>
 @endsection
 
