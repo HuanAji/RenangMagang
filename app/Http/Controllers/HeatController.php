@@ -162,4 +162,43 @@ class HeatController extends Controller
 
         return response()->json(['message' => '✅ Heat berhasil di-generate ulang!']);
     }
+
+    /**
+     * Generate/regenerate heats for ALL event + gender combinations at once.
+     */
+    public function regenerateAll()
+    {
+        $service = new HeatGeneratorService();
+
+        // Find all unique event_id + jenis_kelamin combinations from registrations
+        $combinations = \App\Models\Registration::join('athletes', 'registrations.athlete_id', '=', 'athletes.id')
+            ->select('registrations.event_id', 'athletes.jenis_kelamin')
+            ->distinct()
+            ->get();
+
+        $processed = 0;
+        $results = [];
+
+        foreach ($combinations as $combo) {
+            $event = Event::find($combo->event_id);
+            $genderLabel = $combo->jenis_kelamin === 'L' ? 'Putra' : 'Putri';
+
+            $service->generateForEvent($combo->event_id, $combo->jenis_kelamin);
+            $processed++;
+
+            $results[] = [
+                'event' => $event->nama_event ?? "Event #{$combo->event_id}",
+                'gender' => $genderLabel,
+            ];
+        }
+
+        $totalHeats = Heat::count();
+
+        return response()->json([
+            'message' => "✅ Berhasil generate {$processed} kombinasi event! Total {$totalHeats} heat terbuat.",
+            'processed' => $processed,
+            'total_heats' => $totalHeats,
+            'details' => $results,
+        ]);
+    }
 }

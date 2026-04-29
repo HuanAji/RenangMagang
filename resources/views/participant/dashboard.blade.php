@@ -42,13 +42,28 @@
         padding: 24px 22px 18px;
         overflow: hidden;
         border: 1px solid rgba(0,0,0,0.06);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
         min-height: 145px;
+        cursor: default;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.9) 0%, transparent 65%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+        pointer-events: none;
     }
     .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+        transform: translateY(-6px) scale(1.025);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.13), 0 4px 16px rgba(0,0,0,0.08);
     }
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+    .stat-card > * { position: relative; z-index: 1; }
     .stat-card .stat-label {
         font-size: 0.72rem;
         font-weight: 700;
@@ -73,6 +88,12 @@
         right: 18px;
         font-size: 1.6rem;
         opacity: 0.35;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 1;
+    }
+    .stat-card:hover .stat-icon {
+        opacity: 0.65;
+        transform: scale(1.2) rotate(-5deg);
     }
     .stat-card .stat-sparkline {
         position: absolute;
@@ -81,6 +102,7 @@
         right: 0;
         height: 40px;
         opacity: 0.25;
+        z-index: 0;
     }
 </style>
 
@@ -191,7 +213,7 @@
                             <tr>
                                 <th style="padding:12px 14px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; border:none; text-align:center; width:45px; background:#eef2f8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">No</th>
                                 <th style="padding:12px 14px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; border:none; background:#eef2f8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">Nama</th>
-                                <th style="padding:12px 14px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; border:none; background:#eef2f8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">Nomor Lomba</th>
+                                <th style="padding:12px 14px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; border:none; background:#eef2f8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">Event Diikuti</th>
                                 <th style="padding:12px 14px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b; border:none; text-align:center; background:#eef2f8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">Status</th>
                             </tr>
                         </thead>
@@ -200,10 +222,16 @@
                             <tr style="border-bottom:1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                                 <td style="padding:12px 14px; text-align:center; color:#94a3b8; font-weight:600; border:none;">{{ $index + 1 }}</td>
                                 <td style="padding:12px 14px; border:none;">
-                                    <div style="font-weight:600; color:#1e293b;">{{ $p->athlete->nama ?? '-' }}</div>
-                                    <div style="font-size:0.72rem; color:#94a3b8;">{{ $p->athlete->asal_club_sekolah ?? 'SwimPool Competition' }}</div>
+                                    <div style="font-weight:600; color:#1e293b;">{{ $p['nama'] }}</div>
+                                    <div style="font-size:0.72rem; color:#94a3b8;">{{ $p['klub'] }}</div>
                                 </td>
-                                <td style="padding:12px 14px; color:#475569; border:none;">{{ $p->event->nama_event ?? '-' }}</td>
+                                <td style="padding:12px 14px; border:none;">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach($p['events'] as $eventName)
+                                            <span style="display:inline-block; padding:2px 9px; border-radius:20px; font-size:0.68rem; font-weight:600; background:#e8eef8; color:#003399; border:1px solid rgba(0,51,153,0.15);">{{ $eventName }}</span>
+                                        @endforeach
+                                    </div>
+                                </td>
                                 <td style="padding:12px 14px; text-align:center; border:none;">
                                     <span style="display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:600; background:#dcfce7; color:#16a34a;">Terdaftar</span>
                                 </td>

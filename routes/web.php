@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/heats/{heat}/activate', [HeatController::class, 'setActive'])->name('heats.activate');
     Route::post('/heats/{heat}/complete', [HeatController::class, 'complete'])->name('heats.complete');
     Route::post('/heats/regenerate', [HeatController::class, 'regenerate'])->name('heats.regenerate');
+    Route::post('/heats/regenerate-all', [HeatController::class, 'regenerateAll'])->name('heats.regenerate_all');
 
     // API Routes for AJAX loading
     Route::get('/api/results-table', [ResultController::class, 'getTable']);
@@ -64,8 +65,21 @@ Route::middleware('auth')->group(function () {
             $atletTerdaftar = \App\Models\Athlete::count();
             $totalPendaftaran = \App\Models\Registration::count();
             $totalHeat = \App\Models\Heat::count();
-            
-            $peserta = \App\Models\Registration::with(['athlete', 'event'])->orderBy('created_at', 'desc')->take(10)->get();
+
+            // Grup peserta unik (satu baris per atlet, event sebagai badges)
+            $rawPeserta = \App\Models\Athlete::with('registrations.event')
+                ->whereHas('registrations')
+                ->orderBy('created_at', 'desc')
+                ->take(15)
+                ->get();
+
+            $peserta = $rawPeserta->values()->map(function ($athlete) {
+                return [
+                    'nama'   => $athlete->nama,
+                    'klub'   => $athlete->asal_club_sekolah ?? 'SwimPool Competition',
+                    'events' => $athlete->registrations->map(fn($r) => $r->event->nama_event ?? '-')->filter()->values()->toArray(),
+                ];
+            });
 
             // Ringkasan Heat: jumlah heat per event + per KU
             $heatSummary = \App\Models\Heat::selectRaw('event_id, kelompok_umur, COUNT(*) as total_heats')

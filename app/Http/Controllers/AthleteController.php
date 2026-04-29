@@ -23,7 +23,9 @@ class AthleteController extends Controller
 
     public function edit(Athlete $athlete)
     {
-        return view('participant.athletes.edit', compact('athlete'));
+        $events = Event::all();
+        $registeredEventIds = $athlete->registrations->pluck('event_id')->toArray();
+        return view('participant.athletes.edit', compact('athlete', 'events', 'registeredEventIds'));
     }
 
     public function store(Request $request)
@@ -80,15 +82,44 @@ class AthleteController extends Controller
     {
         $validated = $request->validate([
             'nama'             => 'required|string',
+            'tanggal_lahir'    => 'nullable|date',
             'jenis_kelamin'    => 'required|in:L,P',
             'asal_club_sekolah' => 'nullable|string',
+            'event_id'         => 'nullable|array',
+            'event_id.*'       => 'integer|exists:events,id',
         ]);
 
         try {
-            $athlete->update($validated);
-            return response()->json(['message' => '✅ Data atlet berhasil diperbarui!'], 200);
+            $athlete->update([
+                'nama' => $validated['nama'],
+                'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
+                'jenis_kelamin' => $validated['jenis_kelamin'],
+                'asal_club_sekolah' => $validated['asal_club_sekolah'] ?? null,
+            ]);
+
+            $existingRegistrations = $athlete->registrations->keyBy('event_id');
+            $newEventIds = $request->has('event_id') && is_array($validated['event_id']) ? $validated['event_id'] : [];
+            
+            // Remove unselected events
+            foreach ($existingRegistrations as $eventId => $reg) {
+                if (!in_array($eventId, $newEventIds)) {
+                    $reg->delete();
+                }
+            }
+            
+            // Add new events
+            foreach ($newEventIds as $eventId) {
+                if (!$existingRegistrations->has($eventId)) {
+                    Registration::create([
+                        'athlete_id' => $athlete->id,
+                        'event_id' => $eventId,
+                    ]);
+                }
+            }
+
+            return redirect()->route('participant.athletes')->with('success', '✅ Data atlet berhasil diperbarui!');
         } catch (\Exception $e) {
-            return response()->json(['error' => '❌ Gagal memperbarui atlet: ' . $e->getMessage()], 500);
+            return back()->withErrors(['error' => '❌ Gagal memperbarui atlet: ' . $e->getMessage()])->withInput();
         }
     }
 

@@ -258,16 +258,31 @@
             border-bottom: 1px solid var(--border-color);
         }
         .iot-table-header h5 { margin: 0; font-size: 0.92rem; font-weight: 700; }
-        .btn-clear-iot {
-            background: var(--accent-red-light);
-            color: var(--accent-red);
-            border: 1px solid rgba(220,38,38,0.2);
+        .btn-action-sm {
             border-radius: 6px; padding: 5px 14px;
             font-size: 0.78rem; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; gap: 4px; transition: 0.2s;
+            display: flex; align-items: center; gap: 4px; transition: all 0.2s;
+            border: 1px solid transparent;
         }
-        .btn-clear-iot:hover { background: #fecaca; }
-        .btn-clear-iot .material-icons { font-size: 0.95rem; }
+        .btn-action-sm .material-icons { font-size: 0.95rem; }
+
+        .btn-action-red {
+            background: var(--accent-red-light); color: var(--accent-red);
+            border-color: rgba(220,38,38,0.2);
+        }
+        .btn-action-red:hover { background: #fecaca; }
+
+        .btn-action-green {
+            background: var(--accent-green-light); color: var(--accent-green);
+            border-color: rgba(22,163,74,0.2);
+        }
+        .btn-action-green:hover { background: #bbf7d0; }
+
+        .btn-action-blue {
+            background: #e0f2fe; color: #0284c7;
+            border-color: rgba(2,132,199,0.2);
+        }
+        .btn-action-blue:hover { background: #bae6fd; }
         .iot-scroll { max-height: 360px; overflow-y: auto; }
         .iot-table { width: 100%; border-collapse: collapse; }
         .iot-table th {
@@ -287,6 +302,93 @@
             text-align: center; padding: 40px 20px; color: var(--text-muted);
         }
         .empty-state .material-icons { font-size: 3rem; margin-bottom: 10px; display: block; color: var(--text-muted); }
+
+        /* ===== GENERATE ALL OVERLAY ===== */
+        .gen-all-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .gen-all-overlay.active { display: flex; }
+        .gen-all-card {
+            background: white;
+            border-radius: 20px;
+            padding: 48px 44px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+            animation: overlaySlideIn 0.4s ease;
+        }
+        @keyframes overlaySlideIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .gen-all-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .gen-all-icon .material-icons { font-size: 2.2rem; color: var(--accent-orange); }
+        .gen-all-title { font-size: 1.3rem; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+        .gen-all-subtitle { font-size: 0.88rem; color: #64748b; margin-bottom: 24px; }
+        .gen-all-progress-wrap {
+            background: #f1f5f9;
+            border-radius: 99px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .gen-all-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ea580c, #f59e0b);
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+        .gen-all-status { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+        .gen-all-status strong { color: #1e293b; }
+        .gen-all-done-icon {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            animation: donePopIn 0.5s ease;
+        }
+        @keyframes donePopIn {
+            from { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            to { transform: scale(1); }
+        }
+        .gen-all-done-icon .material-icons { font-size: 2.5rem; color: #16a34a; }
+        .btn-gen-all {
+            width: 100%;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: all 0.25s;
+            margin-top: 8px;
+        }
+        .btn-gen-all:hover {
+            background: linear-gradient(135deg, #334155 0%, #475569 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 41, 59, 0.25);
+        }
+        .btn-gen-all .material-icons { font-size: 1.1rem; color: #f59e0b; }
     </style>
 @endpush
 
@@ -308,7 +410,7 @@
     <!-- LEFT PANEL -->
     <aside class="op-panel">
         <div class="panel-section">
-            <div class="panel-label">🎛️ Panel Kendali Heat</div>
+            <div class="panel-label">Panel Kendali Heat</div>
             <select id="select-event" class="panel-select">
                 <option value="" disabled selected>-- Pilih Nomor Event --</option>
                 @foreach($events as $evt)
@@ -333,7 +435,13 @@
                 <span class="material-icons" style="font-size:1.1rem;">search</span> Tampilkan Heat
             </button>
             <button class="btn-load-heats mt-2" id="btn-generate-heats" style="background:var(--accent-orange); color:white;">
-                <span class="material-icons" style="font-size:1.1rem;">auto_awesome</span> Generate/Update Heat
+                <span class="material-icons" style="font-size:1.1rem;">auto_awesome</span> Update Heat
+            </button>
+
+            <hr style="border-color: #e2e8f0; margin: 14px 0;">
+            <div class="panel-label">Aksi Massal</div>
+            <button class="btn-gen-all" id="btn-generate-all">
+                <span class="material-icons">rocket_launch</span> Generate Semua Event
             </button>
         </div>
         <div class="panel-section">
@@ -383,7 +491,12 @@
 
         <!-- Lane Table -->
         <div class="lane-table-wrap">
-            <h5>🏊 Peserta di Kolam (Heat Aktif)</h5>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-right:18px;">
+                <h5>🏊 Peserta di Kolam (Heat Aktif)</h5>
+                <button class="btn-action-sm btn-action-green" id="btn-export-excel" title="Export ke Excel">
+                    <span class="material-icons">table_view</span> Export Excel
+                </button>
+            </div>
             <table class="lane-table">
                 <thead>
                     <tr>
@@ -406,14 +519,11 @@
             <div class="iot-table-header">
                 <h5>⏱️ Hasil Waktu Lomba (Real-time)</h5>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <button class="btn-clear-iot" id="btn-reset-db" title="Race Ulang">
-                        <span class="material-icons" style="font-size:0.95rem;">delete_sweep</span> Race Ulang
+                    <button class="btn-action-sm btn-action-red" id="btn-reset-db" title="Race Ulang">
+                        <span class="material-icons">delete_sweep</span> Race Ulang
                     </button>
-                    <button class="btn-clear-iot" id="btn-export-excel" title="Export ke Excel" style="background:var(--accent-green-light); color:var(--accent-green); border-color:rgba(22,163,74,0.2);">
-                        <span class="material-icons" style="font-size:0.95rem;">table_view</span> Export Excel
-                    </button>
-                    <button class="btn-clear-iot" id="btn-end-session" title="Akhiri sesi dan selesaikan Heat">
-                        <span class="material-icons" style="font-size:0.95rem;">flag</span> Akhiri Sesi
+                    <button class="btn-action-sm btn-action-blue" id="btn-end-session" title="Akhiri sesi dan selesaikan Heat">
+                        <span class="material-icons">flag</span> Akhiri Sesi
                     </button>
                 </div>
             </div>
@@ -603,6 +713,64 @@
         </div>
     </div>
 </div>
+
+<!-- ===== MODAL KONFIRMASI GENERATE SEMUA ===== -->
+<div class="modal fade" id="modal-generate-all" tabindex="-1" aria-labelledby="modalGenerateAllLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, #1e293b, #334155);display:flex;align-items:center;justify-content:center;">
+                        <span class="material-icons" style="color:#f59e0b;font-size:1.3rem;">rocket_launch</span>
+                    </div>
+                    <h6 class="modal-title fw-bold mb-0" id="modalGenerateAllLabel">Generate Semua Event</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2" style="font-size:0.95rem;">Anda akan men-generate ulang <strong>SEMUA</strong> Heat untuk seluruh event dan gender sekaligus.</p>
+                <div class="alert alert-warning py-2 px-3 m-0 d-flex gap-2" style="font-size:0.82rem;border-radius:8px; line-height: 1.4;">
+                    <span class="material-icons" style="font-size:1.2rem; flex-shrink:0;">warning</span>
+                    <div>Proses ini akan <strong>menghapus semua Heat lama</strong> dan membuat Heat baru berdasarkan daftar peserta terbaru. Pastikan data atlet sudah lengkap!</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius:8px; font-weight:600;">Batal</button>
+                <button type="button" class="btn text-white px-4" id="btn-konfirmasi-generate-all" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius:8px; font-weight:600;">
+                    <span class="material-icons me-1" style="font-size:1rem; vertical-align:middle; color:#f59e0b;">rocket_launch</span> Ya, Generate Semua
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FULLSCREEN OVERLAY PROGRESS ===== -->
+<div class="gen-all-overlay" id="gen-all-overlay">
+    <div class="gen-all-card" id="gen-all-card">
+        <!-- Processing State -->
+        <div id="gen-all-processing">
+            <div class="gen-all-icon">
+                <span class="material-icons">auto_awesome</span>
+            </div>
+            <div class="gen-all-title">Sedang Men-generate Heat...</div>
+            <div class="gen-all-subtitle">Mohon tunggu, semua event sedang diproses secara otomatis.</div>
+            <div class="gen-all-progress-wrap">
+                <div class="gen-all-progress-bar" id="gen-all-progress-bar"></div>
+            </div>
+            <div class="gen-all-status" id="gen-all-status">Mempersiapkan data...</div>
+        </div>
+        <!-- Done State (hidden by default) -->
+        <div id="gen-all-done" style="display:none;">
+            <div class="gen-all-done-icon">
+                <span class="material-icons">check_circle</span>
+            </div>
+            <div class="gen-all-title" style="color:#16a34a;">Generate Selesai! 🎉</div>
+            <div class="gen-all-subtitle" id="gen-all-result-text">Semua heat berhasil dibuat.</div>
+            <div id="gen-all-details" style="text-align:left; background:#f8fafc; border-radius:12px; padding:14px 16px; margin-bottom:20px; max-height:160px; overflow-y:auto;"></div>
+            <button class="btn btn-success px-5 py-2" id="btn-gen-all-close" style="border-radius:10px; font-weight:700; font-size:0.95rem;">Tutup</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -689,6 +857,111 @@
             btn.innerHTML = oriText;
             btn.disabled = false;
         });
+    });
+
+    // ===== GENERATE ALL HEATS =====
+    document.getElementById('btn-generate-all').addEventListener('click', () => {
+        const bsModal = new bootstrap.Modal(document.getElementById('modal-generate-all'));
+        bsModal.show();
+    });
+
+    document.getElementById('btn-konfirmasi-generate-all').addEventListener('click', () => {
+        // Close the confirmation modal
+        const modalEl = document.getElementById('modal-generate-all');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+
+        // Show overlay
+        const overlay = document.getElementById('gen-all-overlay');
+        const processingEl = document.getElementById('gen-all-processing');
+        const doneEl = document.getElementById('gen-all-done');
+        const progressBar = document.getElementById('gen-all-progress-bar');
+        const statusEl = document.getElementById('gen-all-status');
+
+        // Reset states
+        processingEl.style.display = 'block';
+        doneEl.style.display = 'none';
+        progressBar.style.width = '0%';
+        statusEl.innerHTML = 'Mempersiapkan data...';
+        overlay.classList.add('active');
+
+        // Animate progress bar (fake progress until server responds)
+        let fakeProgress = 0;
+        const progressInterval = setInterval(() => {
+            if (fakeProgress < 85) {
+                fakeProgress += Math.random() * 8 + 2;
+                if (fakeProgress > 85) fakeProgress = 85;
+                progressBar.style.width = fakeProgress + '%';
+
+                // Update status text at different stages
+                if (fakeProgress > 10 && fakeProgress < 30) {
+                    statusEl.innerHTML = 'Mengambil data registrasi peserta...';
+                } else if (fakeProgress >= 30 && fakeProgress < 50) {
+                    statusEl.innerHTML = 'Menghitung kelompok umur atlet...';
+                } else if (fakeProgress >= 50 && fakeProgress < 70) {
+                    statusEl.innerHTML = 'Membuat heat dan jalur perlombaan...';
+                } else if (fakeProgress >= 70) {
+                    statusEl.innerHTML = 'Finalisasi data heat...';
+                }
+            }
+        }, 400);
+
+        fetch('/heats/regenerate-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF,
+                'Accept': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            clearInterval(progressInterval);
+
+            // Complete the progress bar to 100%
+            progressBar.style.width = '100%';
+            statusEl.innerHTML = '<strong>Selesai!</strong>';
+
+            // After a brief pause, show the done state
+            setTimeout(() => {
+                processingEl.style.display = 'none';
+                doneEl.style.display = 'block';
+
+                // Update result text
+                document.getElementById('gen-all-result-text').textContent =
+                    `${data.processed || 0} kombinasi event berhasil diproses. Total ${data.total_heats || 0} heat terbuat.`;
+
+                // Build details list
+                const detailsEl = document.getElementById('gen-all-details');
+                if (data.details && data.details.length > 0) {
+                    let detailsHtml = '';
+                    data.details.forEach((d, i) => {
+                        detailsHtml += `<div style="padding:6px 0; border-bottom:1px solid #e2e8f0; font-size:0.82rem; display:flex; align-items:center; gap:8px;">
+                            <span style="width:22px;height:22px;border-radius:50%;background:#dcfce7;color:#16a34a;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">${i + 1}</span>
+                            <span style="font-weight:600;color:#1e293b;">${d.event}</span>
+                            <span style="color:#64748b;">— ${d.gender}</span>
+                        </div>`;
+                    });
+                    detailsEl.innerHTML = detailsHtml;
+                } else {
+                    detailsEl.innerHTML = '<div style="font-size:0.82rem; color:#94a3b8; padding:10px 0;">Tidak ada data yang diproses.</div>';
+                }
+            }, 600);
+        })
+        .catch(err => {
+            clearInterval(progressInterval);
+            overlay.classList.remove('active');
+            showToast('Gagal generate semua heat: ' + err.message, 'error');
+        });
+    });
+
+    // Close overlay button
+    document.getElementById('btn-gen-all-close').addEventListener('click', () => {
+        document.getElementById('gen-all-overlay').classList.remove('active');
+        // Reload heats if event/gender are selected
+        const eventId = document.getElementById('select-event').value;
+        const gender = document.getElementById('select-gender').value;
+        if (eventId && gender) loadHeats();
     });
 
     function loadHeats() {

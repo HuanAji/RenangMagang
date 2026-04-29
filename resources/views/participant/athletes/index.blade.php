@@ -19,6 +19,97 @@
     .radio-group-custom .btn-check:checked + .btn:hover {
         background-color: #002266;
     }
+
+    .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #e0e6ed;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: white;
+    color: #555;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.filter-chip:hover, .filter-chip.active {
+    background: #003399;
+    color: white;
+    border-color: #003399;
+}
+.filter-section {
+    background: #f8faff;
+    border: 1px solid #e8eef8;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+.table thead th {
+    background: #f0f4ff;
+    color: #003399;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 2px solid #003399;
+    vertical-align: middle;
+}
+.table tbody tr {
+    transition: background 0.15s;
+}
+.table tbody tr:hover {
+    background: #f0f5ff !important;
+}
+.badge-event {
+    background: linear-gradient(135deg, #13c2c2, #08979c);
+    color: white;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    margin: 1px 2px;
+}
+.ku-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: #003399;
+    font-weight: 600;
+    background: #e8eeff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    margin-top: 2px;
+}
+.active-filters {
+    display: none;
+    margin-bottom: 8px;
+}
+.active-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #003399;
+    color: white;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin: 2px;
+}
+.active-filter-tag .remove-filter {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 2px;
+    opacity: 0.8;
+}
+.active-filter-tag .remove-filter:hover { opacity: 1; }
 </style>
 @endpush
 
@@ -45,100 +136,169 @@
         </div>
     </div>
     <div class="card-body">
-        <form method="GET" action="{{ route('participant.athletes') }}" class="d-flex justify-content-between mb-3 mt-3 w-100">
-            <div class="d-flex align-items-center" style="font-size: 0.9rem; color: #666;">
-                Tampilkan 
-                <select name="per_page" class="form-select mx-2 form-select-sm" style="width: auto;" onchange="this.form.submit()">
-                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                </select>
-                entri
-            </div>
-            <div>
-                <label style="font-size: 0.9rem; color: #666;" class="d-flex align-items-center gap-2">Cari: 
-                    <input type="search" name="search" value="{{ request('search') }}" class="form-control form-control-sm d-inline-block w-auto" placeholder="Ketik nama atau klub...">
-                </label>
-            </div>
-        </form>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">No</th>
-                        <th style="text-align: center; color: #666; font-size: 0.9rem; font-weight: 600;">Nama</th>
-                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Kelompok Umur</th>
-                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600;">Jenis Kelamin</th>
-                        <th style="text-align: center; color: #666; font-size: 0.9rem; font-weight: 600;">Asal Klub/Sekolah</th>
-                        <th style="text-align: center; color: #666; font-size: 0.9rem; font-weight: 600;">Event</th>
-                        <th class="text-center" style="color: #666; font-size: 0.9rem; font-weight: 600; width: 110px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody-peserta" style="font-size: 0.9rem; color: #444;">
-                    @forelse($athletes as $index => $athlete)
-                        <tr>
-                            <td class="text-center">{{ ($athletes->currentPage() - 1) * $athletes->perPage() + $loop->iteration }}</td>
-                            <td>{{ $athlete->nama }}</td>
-                            <td class="text-center">
-    @php
-        $umur = $athlete->umur ?? ($athlete->tanggal_lahir ? \Carbon\Carbon::parse($athlete->tanggal_lahir)->age : null);
-        if ($umur === null) {
-            $kuLabel = '-';
-        } elseif ($umur < 10)      { $kuLabel = null; }
-        elseif ($umur <= 12)       { $kuLabel = 'KU I (10–12 Tahun)'; }
-        elseif ($umur <= 14)       { $kuLabel = 'KU II (13–14 Tahun)'; }
-        elseif ($umur <= 17)       { $kuLabel = 'KU III (15–17 Tahun)'; }
-        elseif ($umur <= 24)       { $kuLabel = 'KU IV (18–24 Tahun)'; }
-        else                       { $kuLabel = 'Senior / Open (25+ Tahun)'; }
-    @endphp
 
-    @if($umur === null)
-        <span style="color:#aaa;">-</span>
-    @elseif($kuLabel === null)
-        <div class="fw-bold">{{ $umur }} Tahun</div>
-        <div style="font-size:0.78rem; color:#aaa;">Belum masuk KU</div>
-    @else
-        <div class="fw-bold">{{ $umur }} Tahun</div>
-        <div style="font-size:0.78rem; color:#003399; font-weight: 500;">{{ $kuLabel }}</div>
-    @endif
-</td>
-                            <td class="text-center">{{ $athlete->jenis_kelamin === 'L' ? 'Laki-laki' : ($athlete->jenis_kelamin === 'P' ? 'Perempuan' : '-') }}</td>
-                            <td>{{ $athlete->asal_club_sekolah ?? '-' }}</td>
-                            <td>
-                                @foreach($athlete->registrations as $reg)
-                                    <span class="badge" style="background-color:#13c2c2;">{{ $reg->event->nama_event }}</span>
-                                @endforeach
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('athletes.edit', $athlete->id) }}" class="btn btn-sm text-white p-1" style="background-color: #1890ff;" title="Edit">
-                                        <span class="material-icons" style="font-size: 1.1rem;">edit</span>
-                                    </a>
-                                    <button class="btn btn-sm text-white p-1 btn-delete-athlete" 
-                                        data-id="{{ $athlete->id }}" 
-                                        data-nama="{{ $athlete->nama }}"
-                                        style="background-color: #ff4d4f;" title="Hapus">
-                                        <span class="material-icons" style="font-size: 1.1rem;">delete</span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center bg-light text-muted py-3">Tidak ada data yang tersedia pada tabel ini</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <small class="text-muted">Menampilkan {{ $athletes->firstItem() ?? 0 }} sampai {{ $athletes->lastItem() ?? 0 }} dari {{ $athletes->total() }} entri</small>
-            <div class="m-0 pagination-sm">
-                {{ $athletes->links('pagination::bootstrap-5') }}
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row g-3">
+            <div class="col-12 col-md-4">
+                <div class="filter-label">Kelompok Umur</div>
+                <div class="d-flex flex-wrap gap-1" id="filter-ku">
+                    <span class="filter-chip active" data-ku="all">Semua</span>
+                    <span class="filter-chip" data-ku="KU I">KU I</span>
+                    <span class="filter-chip" data-ku="KU II">KU II</span>
+                    <span class="filter-chip" data-ku="KU III">KU III</span>
+                    <span class="filter-chip" data-ku="KU IV">KU IV</span>
+                    <span class="filter-chip" data-ku="Senior">Senior</span>
+                </div>
             </div>
+            <div class="col-12 col-md-4">
+                <div class="filter-label">Asal Klub / Sekolah</div>
+                <select id="filter-klub" class="form-select form-select-sm" style="border-color:#e0e6ed; font-size:0.85rem;">
+                    <option value="all">Semua Klub/Sekolah</option>
+                    @foreach($athletes->getCollection()->pluck('asal_club_sekolah')->unique()->filter()->sort() as $klub)
+                        <option value="{{ $klub }}">{{ $klub }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="filter-label">Event</div>
+                <select id="filter-event" class="form-select form-select-sm" style="border-color:#e0e6ed; font-size:0.85rem;">
+                    <option value="all">Semua Event</option>
+                    @foreach($events as $event)
+                        <option value="{{ $event->nama_event }}">{{ $event->nama_event }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <div id="active-filters" class="active-filters"></div>
+            <button id="btn-reset-filter" class="btn btn-sm btn-outline-secondary ms-auto" style="font-size:0.8rem; display:none;">
+                Reset Filter
+            </button>
         </div>
     </div>
+
+    <!-- Search & Per Page -->
+    <form method="GET" action="{{ route('participant.athletes') }}" class="d-flex justify-content-between mb-3 w-100" id="form-search">
+        <div class="d-flex align-items-center" style="font-size: 0.9rem; color: #666;">
+            Tampilkan
+            <select name="per_page" class="form-select mx-2 form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+            </select>
+            entri
+        </div>
+        <label style="font-size: 0.9rem; color: #666;" class="d-flex align-items-center gap-2">Cari:
+            <input type="search" name="search" value="{{ request('search') }}" class="form-control form-control-sm d-inline-block w-auto" placeholder="Ketik nama atau klub...">
+        </label>
+    </form>
+
+    <!-- Info jumlah hasil filter -->
+    <div id="filter-info" class="mb-2" style="font-size:0.82rem; color:#888; display:none;">
+        Menampilkan <span id="filter-count" class="fw-bold text-primary"></span> atlet
+    </div>
+
+    <!-- Tabel -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" id="tabel-atlet">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width:50px;">No</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Kelompok Umur</th>
+                    <th class="text-center">Jenis Kelamin</th>
+                    <th class="text-center">Asal Klub/Sekolah</th>
+                    <th class="text-center">Event</th>
+                    <th class="text-center" style="width:110px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-peserta" style="font-size: 0.9rem; color: #444;">
+                @forelse($athletes as $index => $athlete)
+                    @php
+                        $umur = $athlete->umur ?? ($athlete->tanggal_lahir ? \Carbon\Carbon::parse($athlete->tanggal_lahir)->age : null);
+                        if ($umur === null) { $kuLabel = '-'; $kuKey = '-'; }
+                        elseif ($umur < 10)  { $kuLabel = null; $kuKey = 'Belum KU'; }
+                        elseif ($umur <= 12) { $kuLabel = 'KU I (10–12 Tahun)'; $kuKey = 'KU I'; }
+                        elseif ($umur <= 14) { $kuLabel = 'KU II (13–14 Tahun)'; $kuKey = 'KU II'; }
+                        elseif ($umur <= 17) { $kuLabel = 'KU III (15–17 Tahun)'; $kuKey = 'KU III'; }
+                        elseif ($umur <= 24) { $kuLabel = 'KU IV (18–24 Tahun)'; $kuKey = 'KU IV'; }
+                        else                 { $kuLabel = 'Senior / Open (25+ Tahun)'; $kuKey = 'Senior'; }
+                        $eventNames = $athlete->registrations->map(fn($r) => $r->event->nama_event)->join('|');
+                    @endphp
+                    <tr class="athlete-row"
+                        data-ku="{{ $kuKey }}"
+                        data-klub="{{ $athlete->asal_club_sekolah }}"
+                        data-events="{{ $eventNames }}">
+                        <td class="text-center">{{ ($athletes->currentPage() - 1) * $athletes->perPage() + $loop->iteration }}</td>
+                        <td class="fw-semibold">{{ $athlete->nama }}</td>
+                        <td class="text-center">
+                            @if($umur === null)
+                                <span style="color:#aaa;">-</span>
+                            @elseif($kuLabel === null)
+                                <div class="fw-bold">{{ $umur }} Tahun</div>
+                                <div style="font-size:0.75rem;color:#aaa;">Belum masuk KU</div>
+                            @else
+                                <div class="fw-bold">{{ $umur }} Tahun</div>
+                                <span class="ku-badge">{{ $kuLabel }}</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @if($athlete->jenis_kelamin === 'L')
+                                <span class="badge" style="background:#e6f4ff;color:#1890ff;font-size:0.8rem;">♂ Laki-laki</span>
+                            @elseif($athlete->jenis_kelamin === 'P')
+                                <span class="badge" style="background:#fff0f6;color:#eb2f96;font-size:0.8rem;">♀ Perempuan</span>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="text-center">{{ $athlete->asal_club_sekolah ?? '-' }}</td>
+                        <td>
+                            @foreach($athlete->registrations as $reg)
+                                <span class="badge-event">{{ $reg->event->nama_event }}</span>
+                            @endforeach
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{{ route('athletes.edit', $athlete->id) }}" class="btn btn-sm text-white p-1" style="background-color: #1890ff;" title="Edit">
+                                    <span class="material-icons" style="font-size: 1.1rem;">edit</span>
+                                </a>
+                                <button class="btn btn-sm text-white p-1 btn-delete-athlete"
+                                    data-id="{{ $athlete->id }}"
+                                    data-nama="{{ $athlete->nama }}"
+                                    style="background-color: #ff4d4f;" title="Hapus">
+                                    <span class="material-icons" style="font-size: 1.1rem;">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr id="row-empty-db">
+                        <td colspan="7" class="text-center bg-light text-muted py-4">
+                            <span class="material-icons d-block mb-2" style="font-size:2rem;color:#ccc;">person_off</span>
+                            Tidak ada data atlet
+                        </td>
+                    </tr>
+                @endforelse
+                <!-- Baris kosong saat filter tidak ada hasil -->
+                <tr id="row-empty-filter" style="display:none;">
+                    <td colspan="7" class="text-center bg-light text-muted py-4">
+                        <span class="material-icons d-block mb-2" style="font-size:2rem;color:#ccc;">search_off</span>
+                        Tidak ada atlet yang sesuai filter
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <small class="text-muted">Menampilkan {{ $athletes->firstItem() ?? 0 }} sampai {{ $athletes->lastItem() ?? 0 }} dari {{ $athletes->total() }} entri</small>
+        <div class="m-0 pagination-sm">
+            {{ $athletes->links('pagination::bootstrap-5') }}
+        </div>
+    </div>
+</div>
 </div>
 
 <!-- Modal Tambah Peserta -->
@@ -518,6 +678,85 @@
         document.getElementById('preview-ku-warning').style.display = 'none';
         document.getElementById('input-tanggal-lahir').value      = '';
     }
+
+    // ===== FILTER ATLET =====
+let activeKU    = 'all';
+let activeKlub  = 'all';
+let activeEvent = 'all';
+
+function applyFilter() {
+    const rows = document.querySelectorAll('.athlete-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const ku     = row.dataset.ku;
+        const klub   = row.dataset.klub;
+        const events = row.dataset.events;
+
+        const matchKU    = activeKU    === 'all' || ku === activeKU;
+        const matchKlub  = activeKlub  === 'all' || klub === activeKlub;
+        const matchEvent = activeEvent === 'all' || events.includes(activeEvent);
+
+        if (matchKU && matchKlub && matchEvent) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Tampilkan baris kosong jika tidak ada hasil
+    const emptyFilter = document.getElementById('row-empty-filter');
+    if (emptyFilter) emptyFilter.style.display = visibleCount === 0 ? '' : 'none';
+
+    // Info jumlah
+    const filterInfo = document.getElementById('filter-info');
+    const filterCount = document.getElementById('filter-count');
+    const isFiltered = activeKU !== 'all' || activeKlub !== 'all' || activeEvent !== 'all';
+    if (isFiltered) {
+        filterInfo.style.display = 'block';
+        filterCount.textContent = visibleCount;
+    } else {
+        filterInfo.style.display = 'none';
+    }
+
+    // Tombol reset
+    document.getElementById('btn-reset-filter').style.display = isFiltered ? 'inline-block' : 'none';
+}
+
+// Filter KU chips
+document.querySelectorAll('#filter-ku .filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+        document.querySelectorAll('#filter-ku .filter-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        activeKU = this.dataset.ku;
+        applyFilter();
+    });
+});
+
+// Filter Klub
+document.getElementById('filter-klub').addEventListener('change', function() {
+    activeKlub = this.value;
+    applyFilter();
+});
+
+// Filter Event
+document.getElementById('filter-event').addEventListener('change', function() {
+    activeEvent = this.value;
+    applyFilter();
+});
+
+// Reset semua filter
+document.getElementById('btn-reset-filter').addEventListener('click', function() {
+    activeKU    = 'all';
+    activeKlub  = 'all';
+    activeEvent = 'all';
+    document.querySelectorAll('#filter-ku .filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('#filter-ku .filter-chip[data-ku="all"]').classList.add('active');
+    document.getElementById('filter-klub').value  = 'all';
+    document.getElementById('filter-event').value = 'all';
+    applyFilter();
+});
 </script>
 @endpush
 @endsection
