@@ -1,0 +1,115 @@
+.custom-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+.radio-group-custom .btn-check:checked + .btn {
+    background-color: #003399;
+    color: white;
+    border-color: #003399;
+}
+.radio-group-custom .btn {
+    border-color: #e0e6ed;
+    color: #666;
+}
+.radio-group-custom .btn:hover {
+    background-color: #f8f9fa;
+}
+.radio-group-custom .btn-check:checked + .btn:hover {
+    background-color: #002266;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #e0e6ed;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: white;
+    color: #555;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.filter-chip:hover, .filter-chip.active {
+    background: #003399;
+    color: white;
+    border-color: #003399;
+}
+.filter-section {
+    background: #f8faff;
+    border: 1px solid #e8eef8;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+.table thead th {
+    background: #f0f4ff;
+    color: #003399;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 2px solid #003399;
+    vertical-align: middle;
+}
+.table tbody tr {
+    transition: background 0.15s;
+}
+.table tbody tr:hover {
+    background: #f0f5ff !important;
+}
+.badge-event {
+    background: linear-gradient(135deg, #13c2c2, #08979c);
+    color: white;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    margin: 1px 2px;
+}
+.ku-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: #003399;
+    font-weight: 600;
+    background: #e8eeff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    margin-top: 2px;
+}
+.active-filters {
+    display: none;
+    margin-bottom: 8px;
+}
+.active-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #003399;
+    color: white;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin: 2px;
+}
+.active-filter-tag .remove-filter {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 2px;
+    opacity: 0.8;
+}
+.active-filter-tag .remove-filter:hover { opacity: 1; }

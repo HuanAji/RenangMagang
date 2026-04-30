@@ -3,7 +3,7 @@
 
 @section('breadcrumb')
 @php
-    $hour = now()->format('H');
+    $hour = now()->timezone('Asia/Jakarta')->format('H');
     if ($hour < 12) {
         $greeting = 'Selamat pagi';
     } elseif ($hour < 15) {
@@ -35,90 +35,23 @@
 @endsection
 
 @section('content')
-<style>
-    .stat-card {
-        position: relative;
-        border-radius: 16px;
-        padding: 24px 22px 18px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.06);
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-        min-height: 145px;
-        cursor: default;
-    }
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.9) 0%, transparent 65%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: 0;
-        pointer-events: none;
-    }
-    .stat-card:hover {
-        transform: translateY(-6px) scale(1.025);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.13), 0 4px 16px rgba(0,0,0,0.08);
-    }
-    .stat-card:hover::before {
-        opacity: 1;
-    }
-    .stat-card > * { position: relative; z-index: 1; }
-    .stat-card .stat-label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin-bottom: 10px;
-        opacity: 0.7;
-    }
-    .stat-card .stat-value {
-        font-size: 2.2rem;
-        font-weight: 800;
-        line-height: 1;
-        margin-bottom: 4px;
-    }
-    .stat-card .stat-sub {
-        font-size: 0.78rem;
-        opacity: 0.6;
-    }
-    .stat-card .stat-icon {
-        position: absolute;
-        top: 18px;
-        right: 18px;
-        font-size: 1.6rem;
-        opacity: 0.35;
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        z-index: 1;
-    }
-    .stat-card:hover .stat-icon {
-        opacity: 0.65;
-        transform: scale(1.2) rotate(-5deg);
-    }
-    .stat-card .stat-sparkline {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40px;
-        opacity: 0.25;
-        z-index: 0;
-    }
-</style>
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ time() }}">
+@endpush
 
 <div class="row g-3 mb-4">
     <!-- Total Klub/Sekolah -->
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card shadow-sm" style="background: linear-gradient(135deg, #ffffff 0%, #e8f0fe 100%); color: #1a3a6b;">
-            <span class="material-icons stat-icon">domain</span>
+        <div class="stat-card shadow-sm" style="background: linear-gradient(to bottom, #ffffff 40%, #e2e8f0 100%); color: #1e293b; --icon-bg: rgba(37, 99, 235, 0.12); --icon-color: #2563eb;">
+            <div class="stat-icon"><span class="material-icons">domain</span></div>
             <div class="stat-label">Total Klub/Sekolah</div>
             <div class="stat-value">{{ $totalKlub }}</div>
             <div class="stat-sub">Tim yang berpartisipasi</div>
             <svg class="stat-sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
-                <polyline fill="none" stroke="#003399" stroke-width="2" points="0,35 20,28 40,30 60,18 80,22 100,12 120,15 140,8 160,14 180,6 200,10"/>
+                <polyline fill="none" stroke="#2563eb" stroke-width="2" points="0,35 20,28 40,30 60,18 80,22 100,12 120,15 140,8 160,14 180,6 200,10"/>
                 <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#003399" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#003399" stop-opacity="0"/>
+                    <stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
                 </linearGradient>
                 <polyline fill="url(#grad1)" stroke="none" points="0,40 0,35 20,28 40,30 60,18 80,22 100,12 120,15 140,8 160,14 180,6 200,10 200,40"/>
             </svg>
@@ -127,15 +60,15 @@
     
     <!-- Atlet Terdaftar -->
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card shadow-sm" style="background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%); color: #0a4a2e;">
-            <span class="material-icons stat-icon">groups</span>
+        <div class="stat-card shadow-sm" style="background: linear-gradient(to bottom, #ffffff 40%, #e2e8f0 100%); color: #1e293b; --icon-bg: rgba(22, 163, 74, 0.12); --icon-color: #16a34a;">
+            <div class="stat-icon"><span class="material-icons">groups</span></div>
             <div class="stat-label">Atlet Terdaftar</div>
             <div class="stat-value">{{ $atletTerdaftar }}</div>
             <div class="stat-sub">Total peserta terdaftar</div>
             <svg class="stat-sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
-                <polyline fill="none" stroke="#16a34a" stroke-width="2" points="0,35 25,30 50,25 75,28 100,18 125,22 150,14 175,10 200,6"/>
+                <polyline fill="none" stroke="#14873eff" stroke-width="2" points="0,35 25,30 50,25 75,28 100,18 125,22 150,14 175,10 200,6"/>
                 <linearGradient id="grad4" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#16a34a" stop-opacity="0.3"/>
+                    <stop offset="0%" stop-color="#16a34a" stop-opacity="0.2"/>
                     <stop offset="100%" stop-color="#16a34a" stop-opacity="0"/>
                 </linearGradient>
                 <polyline fill="url(#grad4)" stroke="none" points="0,40 0,35 25,30 50,25 75,28 100,18 125,22 150,14 175,10 200,6 200,40"/>
@@ -145,15 +78,15 @@
 
     <!-- Pendaftaran Lomba -->
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card shadow-sm" style="background: linear-gradient(135deg, #ffffff 0%, #fef3f2 100%); color: #6b1a1a;">
-            <span class="material-icons stat-icon">assignment</span>
+        <div class="stat-card shadow-sm" style="background: linear-gradient(to bottom, #ffffff 40%, #e2e8f0 100%); color: #1e293b; --icon-bg: rgba(220, 38, 38, 0.12); --icon-color: #dc2626;">
+            <div class="stat-icon"><span class="material-icons">assignment</span></div>
             <div class="stat-label">Pendaftaran Lomba</div>
             <div class="stat-value">{{ $totalPendaftaran }}</div>
             <div class="stat-sub">Total entri cabang lomba</div>
             <svg class="stat-sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
                 <polyline fill="none" stroke="#dc2626" stroke-width="2" points="0,30 25,22 50,28 75,15 100,20 125,10 150,18 175,8 200,12"/>
                 <linearGradient id="grad2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#dc2626" stop-opacity="0.3"/>
+                    <stop offset="0%" stop-color="#dc2626" stop-opacity="0.2"/>
                     <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
                 </linearGradient>
                 <polyline fill="url(#grad2)" stroke="none" points="0,40 0,30 25,22 50,28 75,15 100,20 125,10 150,18 175,8 200,12 200,40"/>
@@ -163,30 +96,22 @@
 
     <!-- Total Heat -->
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card shadow-sm" style="background: linear-gradient(135deg, #ffffff 0%, #fef9ec 100%); color: #6b4a0a;">
-            <span class="material-icons stat-icon">pool</span>
+        <div class="stat-card shadow-sm" style="background: linear-gradient(to bottom, #ffffff 40%, #e2e8f0 100%); color: #1e293b; --icon-bg: rgba(217, 119, 6, 0.12); --icon-color: #d97706;">
+            <div class="stat-icon"><span class="material-icons">pool</span></div>
             <div class="stat-label">Total Heat Lomba</div>
             <div class="stat-value">{{ $totalHeat }}</div>
             <div class="stat-sub">Jadwal yang digenerate</div>
             <svg class="stat-sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
-                <polyline fill="none" stroke="#f59e0b" stroke-width="2" points="0,32 30,25 60,30 90,18 120,22 150,12 180,16 200,8"/>
+                <polyline fill="none" stroke="#d97706" stroke-width="2" points="0,32 30,25 60,30 90,18 120,22 150,12 180,16 200,8"/>
                 <linearGradient id="grad3" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+                    <stop offset="0%" stop-color="#d97706" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#d97706" stop-opacity="0"/>
                 </linearGradient>
                 <polyline fill="url(#grad3)" stroke="none" points="0,40 0,32 30,25 60,30 90,18 120,22 150,12 180,16 200,8 200,40"/>
             </svg>
         </div>
     </div>
 </div>
-
-<style>
-    /* Custom Scrollbar for panels */
-    .custom-scroll::-webkit-scrollbar { width: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-</style>
 
 <div class="row g-3">
     <!-- Daftar Peserta Table -->

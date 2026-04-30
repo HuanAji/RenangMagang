@@ -1,0 +1,106 @@
+body {
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    margin: 0;
+
+    /* Background Image */
+    background: url("/images/swimmingonpool.png") no-repeat center center/cover;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Overlay biar lebih readable */
+body::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 420px;
+    z-index: 1;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo h2 {
+    color: white;
+    font-weight: 800;
+    margin-top: 10px;
+}
+
+/* Glassmorphism Card */
+.card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 30px;
+    color: white;
+}
+
+.card-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.form-label {
+    font-size: 0.85rem;
+    color: #eee;
+}
+
+.form-control {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+}
+
+.form-control::placeholder {
+    color: #ddd;
+}
+
+.form-control:focus {
+    background: rgba(255,255,255,0.3);
+    box-shadow: none;
+    color: white;
+}
+
+.form-check-label {
+    color: #ddd;
+    font-size: 0.85rem;
+}
+
+.btn-custom-primary {
+    background: rgba(0, 51, 153, 0.85);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.btn-custom-primary:hover {
+    background: #003399;
+}
+
+.alert {
+    font-size: 0.85rem;
+    padding: 10px;
+}
